@@ -142,6 +142,18 @@ export class ShipView {
     // brechas: marcar pared exterior
     for (const room of L.roomList) {
       const rs = ship.rooms[room.id];
+      const fl = opts.flash && opts.flash[room.id] != null ? Math.max(0, 1 - (t - opts.flash[room.id]) / 0.8) : 0;
+      if (fl > 0) {
+        const fc = mix(C.o2, C.red, fl);
+        for (let x = room.x; x < room.x + room.w; x++) {
+          this.tint(ox + x, oy + room.y, fc);
+          this.tint(ox + x, oy + room.y + room.h - 1, fc);
+        }
+        for (let y = room.y; y < room.y + room.h; y++) {
+          this.tint(ox + room.x, oy + y, fc);
+          this.tint(ox + room.x + room.w - 1, oy + y, fc);
+        }
+      }
       const hov = opts.hoverRoom === room.id || opts.selRoom === room.id;
       if (hov) {
         // paredes resaltadas

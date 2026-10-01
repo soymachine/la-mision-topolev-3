@@ -106,6 +106,23 @@ export class TitleScreen {
       }
     }
 
+    // Aurora boreal tenue tras el logo
+    for (let x = 0; x < cols; x++) {
+      const n = Math.sin(x * 0.045 + t * 0.35) * 0.5 + Math.sin(x * 0.11 - t * 0.6) * 0.3 + Math.sin(x * 0.019 + t * 0.15) * 0.4;
+      const top = 2 + Math.round(3 + n * 3);
+      const len = 4 + Math.round((n + 1.2) * 3);
+      const inten = Math.max(0, n + 0.5) / 1.7;
+      if (inten <= 0.05) continue;
+      for (let k = 0; k < len; k++) {
+        const y = top + k;
+        if (y >= L.subY) break;
+        const fade = (1 - k / len) * inten;
+        const col = mix('#000000', x % 7 < 3 ? '#1f5a2a' : '#3a2a5a', Math.min(0.85, fade));
+        const cur = term.get(x, y);
+        if (cur && cur.ch === ' ') term.put(x, y, k % 2 ? '¦' : '│', col);
+      }
+    }
+
     // Cabecera en cirílico
     const head = '☭  ОКБ ТОПОЛЕВ · СОВЕРШЕННО СЕКРЕТНО · ЭКЗ. № 1  ☭';
     term.text(Math.floor((cols - head.length) / 2), L.headerY, head, C.o2);

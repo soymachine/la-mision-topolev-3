@@ -186,6 +186,8 @@ export class FlightScreen {
         case 'stamp': P.text(ox + e.x + 0.5, oy + e.y - 1, '☭', C.red); audio.play('stamp'); break;
         case 'shot': this.shotFx(e); break;
         case 'hit':
+          this.roomFlash = this.roomFlash || {};
+          if (e.room) this.roomFlash[e.room] = this.app.time;
           P.explosion(ox + e.x, oy + e.y, e.flak ? 0.6 : 0.8 + (e.dmg || 5) / 15);
           fx.shake(3 + (e.dmg || 5) / 3, 0.35);
           fx.flash(C.o5, 0.15, 0.12);
@@ -368,7 +370,7 @@ export class FlightScreen {
       const tk = f.tasks.find((t) => t.id === this.hoverTask);
       if (tk) highlight = { room: tk.room, x: tk.x != null ? SX + tk.x : null, y: SY + (tk.y ?? 0) };
     }
-    this.ship.render(run, SX, SY, { hoverRoom: hoverRoomPrev, selRoom: this.sel.room, highlight });
+    this.ship.render(run, SX, SY, { hoverRoom: hoverRoomPrev, selRoom: this.sel.room, highlight, flash: this.roomFlash });
     this.shipInteractions(run, SX, SY, cards.hover);
     this.ship.drawCrew(run, { selCrew: this.sel.crew, hoverCrew: this.hoverCrew || cards.hover });
     this.drawEnemies(f);
