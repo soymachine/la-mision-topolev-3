@@ -238,7 +238,7 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
 
 ### Fase 9 — Eventos y nodos
 - [x] 9.1 Motor de eventos: condiciones, plantillas de texto, opciones con requisitos, tiradas, resultados
-- [ ] 9.2 Catálogo de eventos (≥40) por tipo de nodo y región
+- [x] 9.2 Catálogo de eventos (≥40) por tipo de nodo y región
 - [x] 9.3 Pantalla de evento (texto con efecto máquina de escribir, opciones con probabilidad)
 - [x] 9.4 Aeródromo: comerciar, reparar, repostar, reclutar, vender módulos
 - [x] 9.5 Paso del tiempo en nodos (descanso, consumo agregado)
@@ -254,7 +254,7 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
 - [x] 11.1 Sospecha (fuentes y sumideros), comisario, informante, saboteador, investigación
 - [x] 11.2 Directivas de Moscú (generación, seguimiento, recompensa/penalización)
 - [x] 11.3 Plazo en días y consecuencias
-- [ ] 11.4 Región V y nodo Epicentro: vuelo final «La Señal»
+- [x] 11.4 Región V y nodo Epicentro: vuelo final «La Señal»
 - [x] 11.5 Decisión final y finales múltiples
 - [x] 11.6 Pantalla de fin (derrota/victoria) con puntuación y resumen
 
@@ -265,18 +265,28 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
 - [x] 12.4 Semillas compartibles
 
 ### Fase 13 — Pulido y pruebas
-- [ ] 13.1 Test de simulación en Node (partidas automáticas sin errores)
-- [ ] 13.2 Test visual con Playwright (capturas de cada pantalla, sin errores de consola)
-- [ ] 13.3 Balance (consumos, ritmos de necesidades, frecuencia de incidentes, precios)
-- [ ] 13.4 Rendimiento (render por celdas sucias, límite de partículas)
-- [ ] 13.5 Atajos de teclado y ayudas contextuales (tooltips por todas partes)
-- [ ] 13.6 Autoguardado (llegada a nodo, cada 30 s en vuelo, al salir)
+- [x] 13.1 Test de simulación en Node (partidas automáticas sin errores)
+- [x] 13.2 Test visual con Playwright (capturas de cada pantalla, sin errores de consola)
+- [x] 13.3 Balance (consumos, ritmos de necesidades, frecuencia de incidentes, precios)
+- [x] 13.4 Rendimiento (render por celdas sucias, límite de partículas)
+- [x] 13.5 Atajos de teclado y ayudas contextuales (tooltips por todas partes)
+- [x] 13.6 Autoguardado (llegada a nodo, cada 30 s en vuelo, al salir)
 
 ### Fase 14 — Publicación
-- [ ] 14.1 Verificar rutas relativas para GitHub Pages
-- [ ] 14.2 README con instrucciones para jugar y publicar (sin spoilers)
+- [x] 14.1 Verificar rutas relativas para GitHub Pages
+- [x] 14.2 README con instrucciones para jugar y publicar (sin spoilers)
 
 ---
 
 ## 4. Registro de sesiones
-- Sesión 1: diseño y plan.
+- Sesión 1: diseño y plan; motor ASCII completo; todas las pantallas; simulación de vuelo;
+  mapas procedurales; 67 eventos; finales; meta-progresión; pruebas en Node y Playwright;
+  equilibrio inicial (partidas automáticas: `node tests/fullrun.mjs 10 estajanovista`).
+
+## 5. Ideas pendientes / mejoras futuras (no bloquean)
+- [ ] Más incidentes de vuelo (intoxicación, fuga del refrigerante, impacto de aves).
+- [ ] Puertas que se puedan cerrar para frenar humo/fuego.
+- [ ] Relaciones entre tripulantes (amistades/rivalidades).
+- [ ] Más variantes de distribución de la nave.
+- [ ] Música generativa de fondo.
+- [ ] Soporte táctil completo para móviles.
