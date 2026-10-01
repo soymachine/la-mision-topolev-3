@@ -216,6 +216,22 @@ export class MapScreen {
       }
       if (stt.dbl && canGo) this.depart(n.id);
     }
+    // etiquetas de los destinos alcanzables y la posición actual
+    for (const n of map.nodes) {
+      const isCur = n.id === map.cur;
+      if (!reach.has(n.id) && !isCur) continue;
+      if (!inView(n.x, n.y)) continue;
+      const [sx, sy] = S(n.x, n.y);
+      const known = n.known || n.visited;
+      let label = isCur ? 'AQUÍ' : known ? n.name : '¿?';
+      label = label.length > 22 ? label.slice(0, 21) + '…' : label;
+      const hot = this.hover === n.id || this.sel === n.id;
+      let lx = sx + 2;
+      if (lx + label.length >= mx + vw) lx = sx - 2 - label.length;
+      const ly = sy + (isCur ? 1 : 0);
+      if (ly >= my + vh) continue;
+      term.text(lx, ly, label, isCur ? C.white : hot ? C.o7 : C.o4, '#000000');
+    }
     // leyenda
     this.drawLegend(1, H - 1);
 

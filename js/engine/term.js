@@ -149,6 +149,8 @@ export class Term {
     this.atB.fill(0);
     this.top.length = 0;
     this.ents.length = 0;
+    this.fxDim = 1;
+    this.layer = 'base';
   }
 
   inBounds(x, y) {
@@ -406,7 +408,7 @@ export class Term {
     for (let i = 0; i < E.length; i += 7) {
       const px = this.ox + E[i] * cw;
       const py = this.oy + E[i + 1] * chh;
-      const alpha = E[i + 5];
+      const alpha = E[i + 5] * this.fxDim;
       const scale = E[i + 6];
       ctx.globalAlpha = alpha;
       if (E[i + 4]) {
@@ -420,7 +422,13 @@ export class Term {
     }
     ctx.globalAlpha = 1;
     // Partículas
-    if (this.drawParticles) this.drawParticles(ctx);
+    if (this.drawParticles) {
+      ctx.save();
+      if (this.fxDim < 1) ctx.globalAlpha = this.fxDim;
+      this.particleAlpha = this.fxDim;
+      this.drawParticles(ctx);
+      ctx.restore();
+    }
     // Capa superior (tooltips, fantasma de arrastre...)
     const T = this.top;
     let curBold = 0;
@@ -444,7 +452,10 @@ export class Term {
         const box = BOX[ch];
         const blk = BLOCKS[ch];
         if (box) this.drawBox(ctx, x, y, box);
-        else if (blk) {
+        else if (SHADES[ch]) {
+          ctx.fillStyle = this.shadePattern(SHADES[ch], fg || '#fff');
+          ctx.fillRect(x, y, cw, chh);
+        } else if (blk) {
           for (const r of blk) {
             const x0 = x + Math.round((r[0] * cw) / 8);
             const y0 = y + Math.round((r[1] * chh) / 8);

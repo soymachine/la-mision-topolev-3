@@ -564,9 +564,16 @@ export class UI {
     }
     this.layer++;
     this.region('__modal' + this.layer, 0, 0, t.cols, t.rows, { passive: true, cursor: 'default' });
+    // el contenido del modal va a la capa superior (por encima de entidades y partículas)
+    this.modalStack = this.modalStack || [];
+    this.modalStack.push(t.layer);
+    t.layer = 'top';
+    t.fxDim = 0.3;
   }
   endModal() {
     this.layer = Math.max(0, this.layer - 1);
+    const t = this.term;
+    t.layer = (this.modalStack && this.modalStack.pop()) || 'base';
   }
 
   // --- Campo de texto -----------------------------------------------

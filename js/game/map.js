@@ -212,8 +212,12 @@ export function genRegionMap(seed, regionIdx, rng) {
     const aero = col.filter((n) => n.type === 'aerodromo');
     for (let i = 1; i < aero.length; i++) aero[i].type = 'aldea';
   }
+  const usedNames = new Set();
   for (const node of nodes) {
-    node.name = nodeName(rng, node.type, regionIdx);
+    let name = nodeName(rng, node.type, regionIdx);
+    for (let k = 0; k < 6 && usedNames.has(name); k++) name = nodeName(rng, node.type, regionIdx);
+    usedNames.add(name);
+    node.name = name;
     node.known = NODE_TYPES[node.type].known;
   }
   // aristas sin cruces (escalera entre columnas ordenadas por y)

@@ -88,7 +88,7 @@ export class Particles {
         ctx.font = `${Math.round(base * p.scale)}px TopoMono, monospace`;
         curScale = p.scale;
       }
-      ctx.globalAlpha = a;
+      ctx.globalAlpha = a * (t.particleAlpha ?? 1);
       ctx.fillStyle = col;
       ctx.fillText(glyph, t.ox + p.x * cw, t.oy + p.y * ch);
     }
