@@ -154,7 +154,12 @@ export function injure(run, c, amount, cause) {
   if (c.dead || amount <= 0) return;
   const dmg = amount * tmul(c, 'injuryMul');
   c.hp -= dmg;
-  emit(run, { kind: 'hurt', crew: c.id, amount: Math.round(dmg) });
+  // acumular daños pequeños (frío, asfixia...) para no saturar los efectos
+  c._hurtAcc = (c._hurtAcc || 0) + dmg;
+  if (c._hurtAcc >= 3 || dmg >= 3) {
+    emit(run, { kind: 'hurt', crew: c.id, amount: Math.round(c._hurtAcc) });
+    c._hurtAcc = 0;
+  }
   if (c.hp <= 0) die(run, c, cause);
 }
 

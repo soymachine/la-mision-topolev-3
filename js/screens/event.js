@@ -218,7 +218,8 @@ export class EventScreen {
         let chance = '';
         if (o.skill) {
           const ch = checkChance(run, o);
-          chance = ` {d}[${skillName(o.skill)} ${ch.skill} · ${Math.round(ch.chance * 100)}%]{/}`;
+          const pc = Math.round(ch.chance * 100);
+          chance = ` {d}[${ch.actor ? ch.actor.sur + ': ' : ''}${skillName(o.skill)} ${ch.skill} · {/}{${pc >= 66 ? 'g' : pc >= 40 ? 'y' : 'r'}}${pc}%{/}{d}]{/}`;
         }
         const label = `${i + 1}. ${o.label}`;
         if (ui.button('evopt_' + i, tx, ty, label, { w: tw, align: 'left', disabled: !ok, key: String(i + 1), tip: o.desc || null })) this.choose(def, o, ctx);
