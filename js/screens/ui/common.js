@@ -16,11 +16,19 @@ export function fmtRes(run, k) {
   return RES[k].d ? v.toFixed(RES[k].d) : String(Math.floor(v));
 }
 
+// Memoria de valores para resaltar cambios
+const lastRes = { run: null, vals: {}, flash: {} };
+
 // Barra de recursos en una fila. Devuelve ancho usado.
 export function resourceBar(app, x, y, run, opts = {}) {
   const { ui, term } = app;
   const cp = caps(run);
   const keys = opts.keys || RES_KEYS;
+  if (lastRes.run !== run) {
+    lastRes.run = run;
+    lastRes.vals = { ...run.res };
+    lastRes.flash = {};
+  }
   let cx = x;
   for (const k of keys) {
     const R = RES[k];
@@ -32,9 +40,23 @@ export function resourceBar(app, x, y, run, opts = {}) {
     const id = 'res_' + k + (opts.idSuffix || '');
     const st = ui.region(id, cx, y, w, 1, { passive: false, cursor: 'help', sound: false });
     const hv = ui.hoverT(id);
+    // cambio de valor: destello y número flotante
+    const prevV = lastRes.vals[k] ?? run.res[k];
+    const diff = (run.res[k] || 0) - prevV;
+    const thr = k === 'fuel' ? 0.95 : k === 'knowledge' ? 0.99 : 0.5;
+    if (Math.abs(diff) >= thr) {
+      lastRes.vals[k] = run.res[k];
+      lastRes.flash[k] = { t: app.time, up: diff > 0 };
+      if (k !== 'fuel' || Math.abs(diff) >= 2) {
+        const txt = (diff > 0 ? '+' : '−') + (R.d ? Math.abs(diff).toFixed(R.d) : Math.round(Math.abs(diff)));
+        app.particles.text(cx + 1 + txt.length / 2, y + 1.2, txt, diff > 0 ? C.rad : C.red, { vy: 1.2, life: 1.3 });
+      }
+    }
+    const fl = lastRes.flash[k];
+    const fk = fl ? Math.max(0, 1 - (app.time - fl.t) / 1.2) : 0;
     const col = low ? (Math.floor(app.time * 3) % 2 ? C.red : C.o6) : resColor(k);
     term.text(cx, y, R.glyph, col, hv > 0.2 ? C.bg3 : null);
-    term.text(cx + 1, y, v, mix(C.o6, C.white, hv), hv > 0.2 ? C.bg3 : null);
+    term.text(cx + 1, y, v, fk > 0 ? mix(C.o6, fl.up ? C.rad : C.red, fk) : mix(C.o6, C.white, hv), hv > 0.2 ? C.bg3 : fk > 0.5 ? mix(C.bg2, fl.up ? C.radD : C.redD, fk) : null);
     const prev = opts.prev && opts.prev[k];
     ui.tip(id, () => {
       const L = [`{O}${R.name}{/}: ${v}${R.unit}${cap && cap < 9999 ? ` / ${cap}` : ''}`];

@@ -59,6 +59,8 @@ export function crewTooltip(run, c) {
 }
 
 // Dibuja la lista. Devuelve {hoverId}
+const lastHp = new Map();
+
 export function drawCrewCards(app, run, x, y, w, h, sel) {
   const { term, ui } = app;
   const crew = run.crew.filter((c) => !c.dead).concat(run.crew.filter((c) => c.dead && run.clock - (c.diedAt || 0) < 600));
@@ -75,7 +77,13 @@ export function drawCrewCards(app, run, x, y, w, h, sel) {
     const hv = ui.hoverT(id);
     const selected = sel.crew === c.id;
     if (st.hot) hover = c.id;
-    const bg = selected ? C.bg4 : hv > 0.05 ? mix(C.bg1, C.bg3, hv) : C.bg1;
+    // destello rojo al perder salud
+    const prevHp = lastHp.get(c.id);
+    if (prevHp != null && c.hp < prevHp - 0.9) c._hurtT = app.time;
+    lastHp.set(c.id, c.hp);
+    const hurtK = c._hurtT ? Math.max(0, 1 - (app.time - c._hurtT) / 0.7) : 0;
+    let bg = selected ? C.bg4 : hv > 0.05 ? mix(C.bg1, C.bg3, hv) : C.bg1;
+    if (hurtK > 0) bg = mix(bg, C.redD, hurtK);
     term.fillBg(x, cy, w, CARD_H - 1, bg);
     // borde izquierdo de estado
     const alertCol = c.dead ? C.grey2 : c.hp < 40 || c.breakdown ? C.red : c.fatigue > 85 || c.hunger > 85 ? C.gold : selected ? C.o5 : C.o1;

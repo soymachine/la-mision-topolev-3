@@ -77,9 +77,9 @@ export class Term {
     const H = window.innerHeight;
     let px;
     if (this.fontSetting === 'auto') {
-      // Buscar una letra que deje al menos ~168x52 celdas, entre 10 y 18 px
-      px = Math.floor(Math.min(W / (0.602 * 168), H / (1.18 * 52)));
-      px = clamp(px, 9, 18);
+      // Letra pequeña para ver detalle: al menos ~182x56 celdas, entre 9 y 20 px
+      px = Math.floor(Math.min(W / (0.602 * 182), H / (1.18 * 56)));
+      px = clamp(px, 9, 20);
     } else {
       px = Number(this.fontSetting) || 15;
     }

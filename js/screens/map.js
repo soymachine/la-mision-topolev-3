@@ -40,6 +40,10 @@ export class MapScreen {
   update(dt) {
     const P = this.app.particles;
     const { term } = this.app;
+    if (this.departing) {
+      this.departing.t += dt;
+      if (this.departing.t > 1.6) this.depart(this.departing.to);
+    }
     if (Math.random() < dt * 20) P.snow(Math.random() * term.cols, -1, 1, { vx: -1 - Math.random(), vy: 2 + Math.random() * 2, life: 25, alpha: 0.3 });
   }
 
@@ -216,6 +220,18 @@ export class MapScreen {
       }
       if (stt.dbl && canGo) this.depart(n.id);
     }
+    // animación de despegue: el avión recorre la ruta
+    if (this.departing) {
+      const A = map.nodes[map.cur];
+      const B = map.nodes[this.departing.to];
+      const k = Math.min(1, this.departing.t / 1.4);
+      const e = k * k * (3 - 2 * k);
+      const px = A.x + (B.x - A.x) * e;
+      const py = A.y + (B.y - A.y) * e;
+      const [sx, sy] = S(px, py);
+      term.ent(sx, sy, '✈', C.white, null, 1, 1.3);
+      if (Math.random() < 0.8) this.app.particles.add({ x: sx + 0.5, y: sy + 0.5, vx: -(B.x - A.x) * 0.3, vy: 0, life: 0.8, g: '·', c0: C.o5, c1: C.o1 });
+    }
     // etiquetas de los destinos alcanzables y la posición actual
     for (const n of map.nodes) {
       const isCur = n.id === map.cur;
@@ -365,6 +381,12 @@ export class MapScreen {
       this.app.audio.play('deny');
       return;
     }
+    if (!this.departing) {
+      this.departing = { to, t: 0 };
+      this.app.audio.play('land');
+      return;
+    }
+    this.departing = null;
     createFlight(run, to, { final: run.map.nodes[to].type === 'epicentro' });
     run.phase = 'flight';
     saveGame(this.app);
