@@ -191,8 +191,9 @@ export function triggerIncident(run, inc) {
       f.anomaly = r.float(10, 18);
       emit(run, { kind: 'anomaly' });
       alert(run, inc.type === 'senal' ? 'La Señal satura todos los instrumentos.' : 'Una luz violeta envuelve el avión. Las brújulas giran.', 'party', { pause: inc.type !== 'senal', sound: 'radio' });
+      const calm = clamp((run.res.knowledge || 0) / 80, 0, 0.7) + (run.flags.ogdy ? 0.2 : 0);
       for (const c of alive(run)) {
-        const k = has(c, 'supersticioso') ? 2 : 1;
+        const k = (has(c, 'supersticioso') ? 2 : 1) * (1 - calm);
         c.morale = clamp(c.morale - 6 * k, 0, 100);
         if (r.chance(0.08 * k) && !c.breakdown) c.breakdown = { kind: 'panico', t: 0, dur: 8 };
       }
@@ -409,7 +410,7 @@ function roomCenter(roomId) {
 function enemyAttack(run, e, E, ev, ctx) {
   const r = rng(run);
   const f = run.flight;
-  let p = E.acc - ev - (f.flareT > 0 ? 0.5 : 0);
+  let p = E.acc - ev - (f.flareT > 0 ? 0.5 : 0) - (E.drain && (run.res.knowledge || 0) >= 50 ? 0.2 : 0);
   p = clamp(p, 0.04, 0.95);
   const ids = ROOM_IDS();
   const targets = ids.map((id) => [id, (E.targets && E.targets.includes(id) ? 3 : 1) * (layout().rooms[id].deck === 'top' ? 0.5 : 1)]);

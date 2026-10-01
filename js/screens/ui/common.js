@@ -78,7 +78,7 @@ const RES_DESC = {
   vodka: 'Sube la moral. Los bebedores lo necesitan. Se puede destilar.',
   flares: 'Señuelos térmicos: los cazas fallan durante unos minutos.',
   rubles: 'Dinero para comerciar en aeródromos y ciudades.',
-  knowledge: 'Lo que sabéis de la Señal. Decisivo en el Epicentro.',
+  knowledge: 'Lo que sabéis de la Señal. Calma el miedo ante las anomalías y es decisivo en el Epicentro (40+). Con 50+ las esferas os atacan peor.',
 };
 
 export function suspicionMeter(app, x, y, run, w = 16) {

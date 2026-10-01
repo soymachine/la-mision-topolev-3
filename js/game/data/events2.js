@@ -283,4 +283,59 @@ export const EVENTS2 = {
       { label: 'No querer saberlo', desc: '', fx: () => 'Hay preguntas que en este país es mejor no hacerse.' },
     ],
   },
+
+  // ---------------------------------------------------------------- TUNGUSKA (regiones IV-V)
+  ogdy: {
+    where: ['aldea', 'anomalia', 'estacion'], regions: [3, 4], art: 'taiga',
+    title: 'El castigo de Ogdy',
+    text: () => 'Un viejo chamán evenki, con un tambor de piel de reno, os advierte: en 1908 el dios del trueno, Ogdy, bajó a la tierra para castigar a los hombres. «No ha terminado de castigar. Solo estaba esperando a que alguien volviera.»',
+    options: [
+      { label: 'Pedirle que interprete la Señal', desc: 'Conocimiento. Los supersticiosos se inquietan.', fx: (run, ctx, E) => { E.know(6); for (const c of alive(run)) if (has(c, 'supersticioso')) c.morale = Math.max(0, c.morale - 15); return 'Golpea el tambor al ritmo exacto de la Señal: 61 latidos. Luego se niega a seguir.'; } },
+      { label: 'Ofrecerle tabaco y vodka (2)', desc: 'Una bendición evenki para el viaje.', req: (run) => run.res.vodka >= 2, fx: (run, ctx, E) => { E.res({ vodka: -2 }); E.morale(8); run.flags.ogdy = true; return 'Ata una cinta de colores al tren de aterrizaje. «Ahora Ogdy os conoce.»'; } },
+      leave,
+    ],
+  },
+  kulik: {
+    where: ['restos', 'estacion', 'aldea', 'anomalia'], regions: [4], art: 'restos',
+    title: 'La cabaña de Kulik',
+    text: () => 'Entre los árboles caídos aparecen tres cabañas podridas: el campamento de la expedición de Leonid Kulik, de 1927. Sobre una mesa hay un cuaderno helado. La última página tiene un dibujo: una esfera, y alrededor, flechas que salen hacia fuera.',
+    options: [
+      { label: 'Estudiar los cuadernos (2 h)', desc: 'Ciencia 3. Mucho conocimiento.', skill: 'cie', dc: 3,
+        ok: (run, ctx, E) => { E.time(120); E.know(12); return `${nm(ctx.actor)} descifra las notas de Kulik: nunca encontró el meteorito porque nunca hubo meteorito.`; },
+        fail: (run, ctx, E) => { E.time(120); E.know(5); return 'La tinta se ha corrido con la humedad. Aun así, algo se entiende.'; } },
+      { label: 'Llevarse el cuaderno', desc: 'Conocimiento +5. Moscú querrá verlo.', fx: (run, ctx, E) => { E.know(5); E.susp(-3); return 'Lo envolvéis en un hule. Pesa más de lo que debería.'; } },
+    ],
+  },
+  arboles_en_pie: {
+    where: ['anomalia', 'restos', 'aldea'], regions: [4], art: 'epicentro',
+    title: 'El bosque de telégrafos',
+    text: () => 'Kilómetros de árboles tumbados... y de pronto, un círculo de árboles en pie, sin ramas y sin corteza, como postes de telégrafo. Justo aquí la onda llegó desde arriba. Los instrumentos zumban.',
+    options: [
+      { label: 'Medir la radiación residual', desc: 'Ciencia 4. Algo de radiación.', skill: 'cie', dc: 4,
+        ok: (run, ctx, E) => { E.know(8); E.rad(4); return 'La radiación dibuja un patrón: no es residual. Es reciente. Es de hoy.'; },
+        fail: (run, ctx, E) => { E.know(3); E.rad(10); return 'El contador Geiger se satura y se rompe.'; } },
+      { label: 'Despegar rodeando el círculo', desc: '', fx: () => 'Nadie quiere volar por encima de esos postes.' },
+    ],
+  },
+  ecos_radio: {
+    where: ['estacion', 'militar', 'aerodromo'], regions: [3, 4], art: 'cientifico',
+    title: 'Grabaciones de la estación',
+    text: () => 'El radiotelegrafista de la base guarda cintas de la Señal de los últimos tres meses. Lleva semanas sin dormir. «Escuchadlas al revés», susurra.',
+    options: [
+      { label: 'Escucharlas al revés', desc: 'Radio 5.', skill: 'rad', dc: 5,
+        ok: (run, ctx, E) => { E.know(10); return 'Al revés, la Señal tiene ritmo de lenguaje. Y una palabra se repite: un número. La fecha de hoy.'; },
+        fail: (run, ctx, E) => { E.know(3); E.morale(-5); return 'Solo oís ruido... y vuestro propio nombre, o eso parece.'; } },
+      { label: 'Comprar las cintas (50 ₽)', desc: 'Conocimiento +6.', req: (run) => run.res.rubles >= 50, fx: (run, ctx, E) => { E.res({ rubles: -50 }); E.know(6); return 'Os las vende sin regatear. Parece aliviado de perderlas de vista.'; } },
+      leave,
+    ],
+  },
+  ultima_expedicion: {
+    where: ['restos', 'anomalia', 'aldea'], regions: [4], art: 'restos',
+    title: 'La tercera expedición',
+    text: () => 'Encontráis los vehículos de una de las expediciones desaparecidas: dos camiones GAZ, intactos, con las llaves puestas y los depósitos llenos. No hay huellas que se alejen. No hay cuerpos.',
+    options: [
+      { label: 'Vaciar los depósitos (2 h)', desc: '+8 t de combustible.', fx: (run, ctx, E) => { E.time(120); E.res({ fuel: 8, rations: 6 }); E.morale(-6); return 'Cargáis bidones en silencio. Nadie quiere mirar dentro de las cabinas.'; } },
+      { label: 'Leer el diario de a bordo', desc: 'Conocimiento +7. Moral −.', fx: (run, ctx, E) => { E.know(7); E.morale(-8); return 'La última entrada dice: «La esfera nos ha contestado. Vamos a ir». La letra es tranquila.'; } },
+    ],
+  },
 };
