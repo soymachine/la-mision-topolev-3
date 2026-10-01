@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS = {
   hoverSound: true,
   autoPause: true,
   typewriter: true,
+  music: true,
 };
 
 async function boot() {
@@ -51,7 +52,14 @@ async function boot() {
   audio.volume = settings.volume;
   audio.muted = settings.muted;
   const input = new Input(base, term);
-  input.onFirstInteraction = () => audio.init();
+  input.onFirstInteraction = () => {
+    if (!audio.ctx) {
+      audio.init();
+      audio.setMusic(settings.music);
+      const MUS = { title: 'title', newgame: 'title', load: 'title', help: 'title', settings: 'title', archive: 'title', map: 'map', hangar: 'map', crew: 'map', station: 'map', event: 'event', flight: 'flight', gameover: 'over' };
+      audio.music(MUS[app.screens.name] || 'title', true);
+    }
+  };
   const ui = new UI(term, input, audio);
   ui.onCursor = (c) => (base.style.cursor = c);
   const particles = new Particles(term);
@@ -74,6 +82,7 @@ async function boot() {
       particles.mult = settings.particles;
       fx.enabledShake = settings.shake;
       ui.hoverSound = settings.hoverSound;
+      audio.setMusic(settings.music);
     },
     saveSettings() {
       Storage.saveSettings(settings);

@@ -7,7 +7,7 @@ import { layout, SHIP_W, SHIP_H } from '../game/ship.js';
 import { alive, fmtClock, RES, caps, log, addRes } from '../game/run.js';
 import { displayName, roleName } from '../game/crew.js';
 import { SYSTEMS, POLICIES, hull, crewRoom, findTask, daylight, outsideTemp } from '../game/fcore.js';
-import { stepFlight, setPower, powerUsed, THROTTLE, evasiveManeuver, launchFlares, scram, orderCrew, ventRoom, toggleOverload } from '../game/flight.js';
+import { stepFlight, setPower, powerUsed, THROTTLE, evasiveManeuver, launchFlares, scram, orderCrew, ventRoom, toggleOverload, toggleDoor } from '../game/flight.js';
 import { ENEMIES } from '../game/data/enemies.js';
 import { COVERAGE, TURRET_STATION, weaponPowered } from '../game/incidents.js';
 import { RECIPES, addOrder, cancelOrder, POL_FOCUS } from '../game/stations.js';
@@ -29,6 +29,7 @@ const TIPS = [
   'El comisario puede investigar a un tripulante desde la Comisaría (Vigilancia).',
   'Un tripulante con una orden directa lleva una flecha ▾. Clic derecho para liberarle.',
   'Haz clic en una tarea para marcarla como urgente: atraerá a más gente.',
+  'Haz clic en una puerta (¦) o escotilla (╫) para cerrarla: aísla incendios, brechas y radiación.',
   'Las literas son pocas. Con la política de turnos decides cuánto se descansa.',
   'Quien no está sentado o tumbado puede herirse en turbulencias y maniobras.',
   'Sin navegante el tramo se alarga; sin piloto, el piloto automático es torpe.',
@@ -86,6 +87,8 @@ export class FlightScreen {
     const blocked = this.paused || this.menu || this.popup || this.sel.dossier;
     if (!blocked && !f.arrived && !run.over) stepFlight(run, dt);
     this.consumeFx(dt);
+    // música: tensión en combate
+    this.app.audio.music(f.combat || f.incoming ? 'combat' : 'flight');
     // sonido de motores según régimen
     this.app.audio.loop('engine', !f.arrived, f.speedKmh > 0 ? 0.6 + run.ship.throttle * 0.4 : 0.1);
     this.app.audio.loop('wind', !f.arrived, 0.4 + f.weather);
@@ -546,6 +549,18 @@ export class FlightScreen {
         this.sel.crew = null;
       }
       ui.tip(id, () => this.roomTooltip(room), { w: 40, delay: 0.5 });
+    }
+    // compuertas: clic para abrir/cerrar
+    for (const lk of L.links) {
+      const id = 'door_' + lk.key;
+      const st = ui.region(id, SX + lk.x, SY + lk.y, 1, 1, { sound: false });
+      const closed = run.ship.doors && run.ship.doors[lk.key];
+      if (st.hot) term.setBg(SX + lk.x, SY + lk.y, C.o2);
+      if (st.clicked) {
+        const c2 = toggleDoor(run, lk.key);
+        this.app.audio.play(c2 ? 'drop' : 'pick');
+      }
+      ui.tip(id, [`{O}${lk.kind === 'door' ? 'Puerta' : 'Escotilla'}: ${closed ? 'CERRADA' : 'abierta'}{/}`, `${L.rooms[lk.a].name} ↔ ${L.rooms[lk.b].name}`, '{d}Cerrada frena el fuego, el humo, la radiación y la pérdida de aire entre salas. La tripulación puede pasar igualmente.{/}', '{x}Clic para abrir/cerrar{/}'], { w: 40 });
     }
     // estaciones: objetivo de arrastre preciso
     for (const s of L.stationList) {

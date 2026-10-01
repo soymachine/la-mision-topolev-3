@@ -117,6 +117,54 @@ export class Audio {
     }
   }
 
+  // --- Música generativa (re menor armónico, aire de canción popular) ----------
+  setMusic(on) {
+    this.musicOn = on;
+    if (!on) this.music(null);
+    else if (this.musicMode) this.music(this.musicMode, true);
+  }
+
+  music(mode, force = false) {
+    if (mode === this.musicMode && !force) return;
+    this.musicMode = mode;
+    if (this.musicTimer) {
+      clearInterval(this.musicTimer);
+      this.musicTimer = null;
+    }
+    if (!mode || !this.ctx || this.musicOn === false) return;
+    const SCALE = [0, 2, 3, 5, 7, 8, 11, 12, 14, 15];
+    const base = { title: 146.83, map: 146.83, flight: 110, combat: 98, event: 130.81, over: 110 }[mode] || 146.83;
+    const bpm = { title: 54, map: 50, flight: 60, combat: 96, event: 46, over: 40 }[mode] || 54;
+    const beat = 60 / bpm;
+    this.mStep = 0;
+    this.mDeg = 4;
+    this.mNext = this.ctx.currentTime + 0.1;
+    const vol = mode === 'combat' ? 0.05 : 0.035;
+    const tick = () => {
+      if (!this.ctx || this.muted) return;
+      while (this.mNext < this.ctx.currentTime + 0.4) {
+        const t0 = this.mNext - this.ctx.currentTime;
+        const step = this.mStep++;
+        // bajo cada compás
+        if (step % 8 === 0) {
+          const root = step % 32 < 16 ? 1 : step % 32 < 24 ? 0.75 : 0.667;
+          this.tone(base * root * 0.5, beat * 7, 'triangle', vol * 1.1, null, t0);
+        }
+        // melodía: paseo aleatorio por la escala con silencios
+        if (Math.random() < (mode === 'combat' ? 0.75 : 0.55)) {
+          this.mDeg = Math.max(0, Math.min(SCALE.length - 1, this.mDeg + [-2, -1, -1, 0, 1, 1, 2][Math.floor(Math.random() * 7)]));
+          const f = base * Math.pow(2, SCALE[this.mDeg] / 12);
+          const pluck = mode === 'title' || mode === 'event';
+          this.tone(f, pluck ? beat * 0.9 : beat * 1.6, pluck ? 'triangle' : 'sine', vol * (pluck ? 1 : 0.8), null, t0);
+          if (pluck && Math.random() < 0.3) this.tone(f * 2, beat * 0.4, 'triangle', vol * 0.4, null, t0 + beat * 0.5);
+        }
+        this.mNext += beat;
+      }
+    };
+    tick();
+    this.musicTimer = setInterval(tick, 150);
+  }
+
   // Bucles ambientales: 'engine' (zumbido) y 'wind' (viento)
   loop(name, on, param = 1) {
     if (!this.ctx) return;

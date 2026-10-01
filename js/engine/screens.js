@@ -27,10 +27,14 @@ export class ScreenManager {
     const Cls = this.registry[name];
     if (!Cls) throw new Error('Pantalla desconocida: ' + name);
     if (this.cur && this.cur.exit) this.cur.exit();
-    this.cur = new Cls(this.app, opts);
+    const scr = new Cls(this.app, opts);
+    this.cur = scr;
     this.name = name;
-    if (this.cur.enter) this.cur.enter(opts);
+    if (scr.enter) scr.enter(opts);
+    if (this.cur !== scr) return; // la pantalla redirigió a otra en enter()
     this.trans = opts.instant ? null : { t: 0, dur: opts.dur || 0.5 };
+    const MUS = { title: 'title', newgame: 'title', load: 'title', help: 'title', settings: 'title', archive: 'title', map: 'map', hangar: 'map', crew: 'map', station: 'map', event: 'event', flight: 'flight', gameover: 'over' };
+    if (this.app.audio) this.app.audio.music(MUS[name] || 'title');
     this.app.ui.focus = null;
     if (!opts.keepParticles) this.app.particles.clear();
   }

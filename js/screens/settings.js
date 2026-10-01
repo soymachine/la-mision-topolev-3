@@ -18,7 +18,7 @@ export class SettingsScreen {
     const H = term.rows;
     const pw = 70;
     const px = Math.floor((W - pw) / 2);
-    const ph = 30;
+    const ph = 32;
     const py = Math.max(1, Math.floor((H - ph) / 2));
     ui.panel(px, py, pw, ph, { title: 'AJUSTES', style: 'double' });
     let y = py + 2;
@@ -61,6 +61,7 @@ export class SettingsScreen {
       y += 2;
     };
     tog('muted', 'Silenciar todo el sonido');
+    tog('music', 'Música');
     tog('hoverSound', 'Sonido al pasar el ratón');
     tog('crt', 'Efecto CRT (líneas y viñeta)');
     tog('glow', 'Resplandor (bloom)');

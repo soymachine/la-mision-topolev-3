@@ -123,11 +123,14 @@ export class ShipView {
       const roomHere = L.roomOf(x, y);
       let fg = C.o2;
       if (g === 'door') {
-        term.put(ox + x, oy + y, '¦', C.o1);
+        const closed = ship.doors && ship.doors[`d${x}_${y}`];
+        const passing = closed && alive(run).some((c) => Math.round(c.x) === x && Math.round(c.y) === y);
+        term.put(ox + x, oy + y, closed && !passing ? '█' : '¦', closed ? C.o4 : C.o1);
         continue;
       }
       if (g === 'hatch') {
-        term.put(ox + x, oy + y, '╫', C.o3);
+        const closed = ship.doors && ship.doors[`h${x}_${y}`];
+        term.put(ox + x, oy + y, closed ? '▬' : '╫', closed ? C.o5 : C.o3);
         continue;
       }
       if (g === 'ladder') {

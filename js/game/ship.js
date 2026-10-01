@@ -174,9 +174,30 @@ export function layout() {
       adj[b].add(a);
     }
   };
-  for (const [x, y] of DOORS) link(roomAt[key(x - 1, y)], roomAt[key(x + 1, y)]);
-  for (const [x, y0, y1] of LADDERS) link(roomAt[key(x, y0)], roomAt[key(x, y1)]);
+  // compuertas (puertas y escotillas) que se pueden cerrar
+  const links = [];
+  for (const [x, y] of DOORS) {
+    const a = roomAt[key(x - 1, y)];
+    const b = roomAt[key(x + 1, y)];
+    link(a, b);
+    if (a && b) links.push({ a, b, key: `d${x}_${y}`, x, y, kind: 'door' });
+  }
+  for (const [x, y0, y1] of LADDERS) {
+    const a = roomAt[key(x, y0)];
+    const b = roomAt[key(x, y1)];
+    link(a, b);
+    let hy = null;
+    for (let y = y0 + 1; y < y1; y++) if (cell[key(x, y)] === 6) hy = y;
+    if (a && b && hy != null) links.push({ a, b, key: `h${x}_${hy}`, x, y: hy, kind: 'hatch' });
+  }
   LAYOUT.adj = Object.fromEntries(Object.entries(adj).map(([k, v]) => [k, [...v]]));
+  LAYOUT.links = links;
+  LAYOUT.linksOf = {};
+  for (const r of ROOMS) LAYOUT.linksOf[r.id] = [];
+  for (const l of links) {
+    LAYOUT.linksOf[l.a].push({ other: l.b, key: l.key });
+    LAYOUT.linksOf[l.b].push({ other: l.a, key: l.key });
+  }
   return LAYOUT;
 }
 

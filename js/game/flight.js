@@ -223,7 +223,10 @@ function stepReactor(run, f, ctx, dt) {
   const rs = ship.rooms.reactor;
   const leak = Math.max(0, ship.heat - 65) * 1.6 * (1 - ctx.stats.shield) + (core.int < core.maxInt * 0.3 ? 12 : 0);
   rs.rad = leak;
-  for (const id of layout().adj.reactor) ship.rooms[id].rad = Math.max(ship.rooms[id].rad * 0.9, leak * 0.3);
+  for (const lk of layout().linksOf.reactor) {
+    const closed = ship.doors && ship.doors[lk.key];
+    ship.rooms[lk.other].rad = Math.max(ship.rooms[lk.other].rad * 0.9, leak * (closed ? 0.08 : 0.3));
+  }
   if (ship.heat > 90) {
     damageModule(run, 'reactor_core', 0.8 * dt);
     if (!f.heatWarned) {
@@ -345,8 +348,9 @@ function stepRooms(run, f, ctx, dt) {
         addRes(run, 'rations', -lost);
       }
       if (rs.fire > 45) {
-        for (const id of L.adj[room.id]) {
-          if (r.chance(0.02 * dt * (rs.fire / 60))) igniteRoom(run, id, 15);
+        for (const lk of L.linksOf[room.id]) {
+          if (ship.doors && ship.doors[lk.key]) continue; // compuerta cerrada
+          if (r.chance(0.02 * dt * (rs.fire / 60))) igniteRoom(run, lk.other, 15);
         }
       }
       rs.smoke = Math.min(100, rs.smoke + rs.fire * 0.05 * dt);
@@ -363,14 +367,20 @@ function stepRooms(run, f, ctx, dt) {
     }
   }
   // difusión de oxígeno y radiación decae
+  for (const lk of L.links) {
+    if (ship.doors && ship.doors[lk.key]) continue;
+    const A = ship.rooms[lk.a];
+    const B = ship.rooms[lk.b];
+    const d = (B.o2 - A.o2) * 0.1 * dt;
+    A.o2 += d;
+    B.o2 -= d;
+    // el humo también pasa
+    const sm = (B.smoke - A.smoke) * 0.05 * dt;
+    A.smoke += sm;
+    B.smoke -= sm;
+  }
   for (const room of L.roomList) {
     const rs = ship.rooms[room.id];
-    for (const id of L.adj[room.id]) {
-      const o = ship.rooms[id];
-      const d = (o.o2 - rs.o2) * 0.05 * dt;
-      rs.o2 += d;
-      o.o2 -= d;
-    }
     if (room.id !== 'reactor') rs.rad = Math.max(0, rs.rad - 0.5 * dt);
   }
   // ratas
@@ -522,6 +532,12 @@ export function scram(run) {
   run.ship.scram = 6;
   alert(run, 'SCRAM: barras de control insertadas. Sin energía durante unos minutos.', 'warn', { sound: 'scram' });
   return true;
+}
+
+export function toggleDoor(run, key) {
+  run.ship.doors = run.ship.doors || {};
+  run.ship.doors[key] = !run.ship.doors[key];
+  return run.ship.doors[key];
 }
 
 export function ventRoom(run, roomId) {

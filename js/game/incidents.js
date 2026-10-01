@@ -63,6 +63,10 @@ function pickIncident(run, f) {
   if (alive(run).some((c) => has(c, 'saboteador'))) items.push(['sabotaje', 2]);
   if (run.region >= 2) items.push(['anomalia', run.region === 2 ? 0.4 : run.region === 3 ? 1.5 : 3]);
   if (!run.flags.polizon) items.push(['polizon', 0.35]);
+  if ((run.res.meals || 0) > 3) items.push(['intoxicacion', 0.5]);
+  if (run.ship.slots.reactor_core) items.push(['filtracion', 0.6]);
+  if (run.region <= 2) items.push(['pajaros', 0.5]);
+  items.push(['corriente', 0.5]);
   return r.weighted(items);
 }
 
@@ -195,6 +199,40 @@ export function triggerIncident(run, inc) {
         damageRandomModule(run, r.pick(['radio', 'navegacion', 'reactor', 'maquinas']), r.int(10, 22));
         f.drain = Math.max(f.drain || 0, 6);
       }
+      return;
+    }
+    case 'intoxicacion': {
+      const n = Math.min(alive(run).length, r.int(1, 3));
+      const victims = r.shuffle([...alive(run)]).slice(0, n);
+      for (const c of victims) {
+        c.sick = 1;
+        c.hunger = Math.min(100, c.hunger + 20);
+      }
+      addRes(run, 'meals', -Math.min(run.res.meals, 3));
+      alert(run, `Intoxicación alimentaria: ${victims.map((c) => c.sur).join(', ')} con fiebre. Algo estaba en mal estado.`, 'warn', { sound: 'warn' });
+      return;
+    }
+    case 'filtracion': {
+      const rs = run.ship.rooms.reactor;
+      rs.rad = Math.max(rs.rad, 30);
+      run.ship.heat = clamp(run.ship.heat + 12, 0, 120);
+      damageModule(run, 'reactor_core', r.int(10, 20));
+      alert(run, 'Fuga de refrigerante en el reactor: radiación en la sala. Cerrad compuertas y reparad.', 'danger', { pause: true, sound: 'alarm' });
+      emit(run, { kind: 'sparks', room: 'reactor' });
+      return;
+    }
+    case 'pajaros': {
+      const id = r.pick(['motor1_m', 'motor2_m']);
+      damageModule(run, id, r.int(12, 25));
+      alert(run, 'Una bandada de gansos contra un motor. Plumas y aspas dobladas.', 'warn', { sound: 'hit' });
+      emit(run, { kind: 'sparks', room: id === 'motor1_m' ? 'motor1' : 'motor2' });
+      return;
+    }
+    case 'corriente': {
+      // corriente en chorro: a favor o en contra
+      const fav = r.chance(0.55);
+      f.dist = Math.max(f.done + 20, f.dist + (fav ? -1 : 1) * r.int(30, 80));
+      alert(run, fav ? 'Corriente en chorro a favor: el tramo se acorta.' : 'Viento de cara: el tramo se alarga.', fav ? 'good' : 'warn');
       return;
     }
     case 'polizon':
