@@ -6,8 +6,8 @@ import { Noise2D } from '../engine/rng.js';
 import { layout, SHIP_W, SHIP_H } from '../game/ship.js';
 import { alive, fmtClock, RES, caps, log, addRes } from '../game/run.js';
 import { displayName, roleName } from '../game/crew.js';
-import { SYSTEMS, POLICIES, hull, crewRoom, findTask } from '../game/fcore.js';
-import { stepFlight, setPower, powerUsed, THROTTLE, evasiveManeuver, launchFlares, scram, orderCrew } from '../game/flight.js';
+import { SYSTEMS, POLICIES, hull, crewRoom, findTask, daylight, outsideTemp } from '../game/fcore.js';
+import { stepFlight, setPower, powerUsed, THROTTLE, evasiveManeuver, launchFlares, scram, orderCrew, ventRoom, toggleOverload } from '../game/flight.js';
 import { ENEMIES } from '../game/data/enemies.js';
 import { COVERAGE, TURRET_STATION, weaponPowered } from '../game/incidents.js';
 import { RECIPES, addOrder, cancelOrder, POL_FOCUS } from '../game/stations.js';
@@ -19,6 +19,21 @@ import { ShipView, crewGlyph } from './ui/shipview.js';
 import { drawCrewCards, crewTooltip } from './ui/crewcards.js';
 import { resourceBar, suspicionMeter, clockWidget, sectionTitle } from './ui/common.js';
 import { drawDossier } from './ui/dossier.js';
+
+const TIPS = [
+  'Si una sala arde sin control, despresurízala: el fuego se ahoga en segundos (saca antes a la gente).',
+  'La sobrecarga del reactor da +3 de energía. Úsala en combate, pero vigila el calor.',
+  'Antes de una tormenta, sube la calefacción y ten a alguien libre para picar hielo.',
+  'Los artilleros solo disparan si su torreta tiene energía en el sistema de Armas.',
+  'Con poca munición, el taller puede fabricar más a partir de piezas.',
+  'El comisario puede investigar a un tripulante desde la Comisaría (Vigilancia).',
+  'Un tripulante con una orden directa lleva una flecha ▾. Clic derecho para liberarle.',
+  'Haz clic en una tarea para marcarla como urgente: atraerá a más gente.',
+  'Las literas son pocas. Con la política de turnos decides cuánto se descansa.',
+  'Quien no está sentado o tumbado puede herirse en turbulencias y maniobras.',
+  'Sin navegante el tramo se alarga; sin piloto, el piloto automático es torpe.',
+  'La radio necesita energía para descifrar mensajes y transmitir códigos IFF.',
+];
 
 const LOGCOL = { info: C.o3, good: C.rad2, bad: C.red, warn: C.gold, party: C.o6 };
 const ALERTCOL = { info: C.o6, good: C.rad, danger: C.red, warn: C.gold, party: C.o7 };
@@ -176,7 +191,19 @@ export class FlightScreen {
           break;
         case 'miss': this.enemyFire(e, false); break;
         case 'flak': P.explosion(ox + e.x, oy + e.y, 0.35); audio.play('flak'); break;
-        case 'kill': this.enemyFlash[e.enemy] = 1; audio.play('explosion'); fx.shake(4, 0.3); break;
+        case 'kill': {
+          this.enemyFlash[e.enemy] = 1;
+          const p = this.enemyScreen?.[e.enemy];
+          if (p) P.explosion(p.x + 0.5, p.y + 0.5, 1.2);
+          audio.play('explosion');
+          fx.shake(4, 0.3);
+          break;
+        }
+        case 'levelup': {
+          const c = run.crew.find((x) => x.id === e.crew);
+          if (c) P.ring(ox + c.x + 0.5, oy + c.y + 0.5, 14, C.gold, 6);
+          break;
+        }
         case 'shake': fx.shake(e.amount || 4, 0.4); break;
         case 'flash': fx.flash(e.color || '#ffffff', 0.25, 0.3); break;
         case 'anomaly': fx.flash(C.violet, 0.8, 0.25); for (let i = 0; i < 30; i++) P.add({ x: ox + Math.random() * SHIP_W, y: oy + Math.random() * SHIP_H, vy: -0.5, life: 2, g: '◊', c0: C.violet, c1: '#000000', fadeIn: 0.5 }); break;
@@ -198,6 +225,51 @@ export class FlightScreen {
     }
   }
 
+  // Posición en pantalla de un contacto (vuela alrededor del avión según su sector)
+  enemyPos(e) {
+    const ox = this.ship.ox;
+    const oy = this.ship.oy;
+    const area = this.shipArea || { x: ox, y: oy, w: SHIP_W, h: SHIP_H };
+    const cx = ox + SHIP_W / 2;
+    const cy = oy + SHIP_H / 2;
+    const base = { proa: 0, popa: Math.PI, arriba: -Math.PI / 2, abajo: Math.PI / 2 }[e.sector] ?? 0;
+    const a = base + Math.sin(e.ang) * 0.55;
+    const k = clamp(e.dist / 100, 0.2, 1.2);
+    const rx = SHIP_W / 2 + 2 + k * 14;
+    const ry = SHIP_H / 2 + 1 + k * 4;
+    let x = cx + Math.cos(a) * rx;
+    let y = cy + Math.sin(a) * ry;
+    x = clamp(x, area.x + 1, area.x + area.w - 2);
+    y = clamp(y, area.y, area.y + area.h - 2);
+    // suavizado
+    const prev = this.enemyScreen?.[e.id];
+    if (prev) {
+      x = prev.x + (x - prev.x) * 0.08;
+      y = prev.y + (y - prev.y) * 0.08;
+    }
+    this.enemyScreen = this.enemyScreen || {};
+    this.enemyScreen[e.id] = { x, y };
+    return { x, y };
+  }
+
+  drawEnemies(f) {
+    const { term } = this.app;
+    const t = this.app.time;
+    for (const e of f.enemies || []) {
+      const E = ENEMIES[e.type];
+      const p = this.enemyPos(e);
+      const flash = (this.enemyFlash[e.id] || 0) > 0;
+      const col = flash ? C.white : e.fleeing ? C.grey : f.target === e.id ? C.gold : C.red;
+      term.ent(p.x, p.y, E.glyph, col, null, e.fleeing ? 0.5 : 1);
+      // estela
+      if (Math.random() < 0.3) this.app.particles.add({ x: p.x + 0.5, y: p.y + 0.5, vx: -2 + Math.random(), vy: 0, life: 0.5, g: '·', c0: C.o3, c1: C.o0, alpha: 0.5 });
+      if (f.target === e.id && Math.floor(t * 3) % 2) {
+        term.ent(p.x - 1, p.y, '[', C.gold, null, 0.8);
+        term.ent(p.x + 1, p.y, ']', C.gold, null, 0.8);
+      }
+    }
+  }
+
   // trazadora desde una torreta hacia fuera
   shotFx(e) {
     const L = layout();
@@ -211,9 +283,10 @@ export class FlightScreen {
     let tx = sx + 40;
     let ty = sy - 10;
     if (enemy) {
-      const sec = enemy.sector;
-      tx = sec === 'popa' ? ox - 10 : sec === 'proa' ? ox + SHIP_W + 10 : sx + (Math.random() - 0.5) * 60;
-      ty = sec === 'arriba' ? oy - 6 : sec === 'abajo' ? oy + SHIP_H + 6 : sy + (Math.random() - 0.5) * 10;
+      const p = this.enemyPos(enemy);
+      tx = p.x + 0.5 + (e.hit ? 0 : (Math.random() - 0.5) * 8);
+      ty = p.y + 0.5 + (e.hit ? 0 : (Math.random() - 0.5) * 4);
+      if (e.hit) setTimeout(() => P.sparks(p.x + 0.5, p.y + 0.5, 6, { speed: 0.6 }), 160);
     }
     for (let i = 0; i < 3; i++) setTimeout(() => P.tracer(sx, sy, tx + (Math.random() - 0.5) * 4, ty + (Math.random() - 0.5) * 3, { speed: 90 }), i * 70);
     audio.play('gun');
@@ -228,9 +301,9 @@ export class FlightScreen {
     let sx = ox + SHIP_W + 8;
     let sy = oy - 4;
     if (enemy) {
-      const sec = enemy.sector;
-      sx = sec === 'popa' ? ox - 8 : sec === 'proa' ? ox + SHIP_W + 8 : ox + Math.random() * SHIP_W;
-      sy = sec === 'arriba' ? oy - 5 : sec === 'abajo' ? oy + SHIP_H + 4 : oy + Math.random() * SHIP_H;
+      const p = this.enemyPos(enemy);
+      sx = p.x + 0.5;
+      sy = p.y + 0.5;
     }
     const tx = e.x + (hit ? 0 : (Math.random() - 0.5) * 30);
     const ty = e.y + (hit ? 0 : (Math.random() < 0.5 ? -8 : 10));
@@ -295,6 +368,7 @@ export class FlightScreen {
     this.ship.render(run, SX, SY, { hoverRoom: hoverRoomPrev, selRoom: this.sel.room, highlight });
     this.shipInteractions(run, SX, SY, cards.hover);
     this.ship.drawCrew(run, { selCrew: this.sel.crew, hoverCrew: this.hoverCrew || cards.hover });
+    this.drawEnemies(f);
 
     // estado sobre la nave: pausa, aterrizaje
     this.drawShipOverlay(CX, 3, CW, f);
@@ -406,7 +480,15 @@ export class FlightScreen {
     const { term } = this.app;
     const t = this.app.time;
     const speed = (f.speedKmh || 0) / 60;
+    const light = daylight(this.run.clock);
+    const storm = f.weather > 0.4;
+    const skyBg = mix('#000000', storm ? '#0a0b0c' : '#0e0703', light);
+    const cloudA = mix(storm ? '#141414' : '#120903', storm ? '#2a2826' : '#3a1d08', light);
+    const cloudB = mix(storm ? '#0e0e0e' : '#0c0602', storm ? '#1f1d1b' : '#26130a', light);
     for (let j = 0; j < h; j++) {
+      // horizonte más cálido al amanecer/atardecer
+      const horizon = j / h;
+      const rowBg = light > 0 && light < 1 ? mix(skyBg, '#1c0a03', horizon * (1 - Math.abs(light - 0.5) * 2) * 0.8) : skyBg;
       for (let i = 0; i < w; i++) {
         const n = this.noise.fbm((i + t * speed * 2) * 0.05, (j + 30) * 0.18, 3);
         const n2 = this.noise.get((i + t * speed * 5) * 0.12 + 50, j * 0.3);
@@ -415,17 +497,21 @@ export class FlightScreen {
         const dens = n - 0.52 + f.weather * 0.15;
         if (dens > 0.12) {
           ch = '▒';
-          fg = f.weather > 0.4 ? '#1a1410' : '#160b04';
+          fg = cloudA;
         } else if (dens > 0.04) {
           ch = '░';
-          fg = f.weather > 0.4 ? '#1a1410' : '#120903';
-        } else if (n2 > 0.86) {
-          ch = '·';
-          fg = '#2a1607';
+          fg = cloudB;
+        } else if (n2 > 0.86 && light < 0.5) {
+          ch = n2 > 0.97 ? '+' : '·';
+          fg = mix('#3a2410', '#000000', light * 2);
         }
-        term.put(x + i, y + j, ch, fg, '#000000');
+        term.put(x + i, y + j, ch, fg, rowBg);
       }
     }
+    // sol o luna en la esquina
+    const h24 = (this.run.clock / 60) % 24;
+    const icon = light > 0.3 ? '☼' : '☾';
+    term.text(x + 1, y + h - 3, `${icon} ${String(Math.floor(h24)).padStart(2, '0')}:${String(Math.floor((this.run.clock % 60))).padStart(2, '0')}  ${Math.round(outsideTemp(this.run))}°C`, light > 0.3 ? C.gold : C.o3);
     // relámpagos
     if (f.weather > 0.5 && Math.random() < 0.004 * f.weather) {
       this.app.fx.flash('#d8e8ff', 0.12, 0.25);
@@ -577,16 +663,18 @@ export class FlightScreen {
     const cap = f.powerCap ?? 0;
     const used = powerUsed(run);
     term.text(x + 2, y + 1, 'Reactor', C.o3);
-    ui.bar(x + 10, y + 1, 10, cap ? used / Math.max(cap, 1) : 0, { fg: C.o5, id: 'pw_used' });
-    term.text(x + 21, y + 1, `${used}/${cap}`, C.o6);
+    ui.bar(x + 10, y + 1, 8, cap ? used / Math.max(cap, 1) : 0, { fg: C.o5, id: 'pw_used' });
+    term.text(x + 19, y + 1, `${used}/${cap}`, C.o6);
     const heat = run.ship.heat;
     term.text(x + 2, y + 2, 'Calor', C.o3);
     const hc = heat > 85 ? C.red : heat > 65 ? C.gold : C.rad2;
-    ui.bar(x + 10, y + 2, 10, heat / 120, { fg: hc, id: 'pw_heat', marks: [65 / 120, 90 / 120] });
-    term.text(x + 21, y + 2, `${Math.round((heat / 120) * 100)}%`, hc);
+    ui.bar(x + 10, y + 2, 8, heat / 120, { fg: hc, id: 'pw_heat', marks: [65 / 120, 90 / 120] });
+    term.text(x + 19, y + 2, `${Math.round((heat / 120) * 100)}%`, hc);
+    if (f.onBattery) term.text(x + 2, y + 3, 'BATERÍAS', Math.floor(app.time * 2) % 2 ? C.red : C.gold);
     ui.region('pw_heat_tip', x + 2, y + 2, 24, 1, { cursor: 'help', sound: false });
     ui.tip('pw_heat_tip', ['{O}Temperatura del núcleo{/}', 'Sube con la carga del reactor. Por encima de la marca amarilla escapa radiación; por encima de la roja el núcleo se daña.', '{d}Un operador en la consola del reactor refrigera mejor. SCRAM lo apaga de golpe.{/}']);
-    if (ui.button('scram', x + w - 9, y + 1, 'SCRAM', { w: 8, danger: true, disabled: run.ship.scram > 0, tip: ['{r}SCRAM{/}: parada de emergencia del reactor.', 'Enfría el núcleo rápidamente pero corta TODA la energía durante 6 minutos.'] })) scram(run);
+    if (ui.button('scram', x + w - 9, y + 1, 'SCRAM', { w: 8, danger: true, disabled: run.ship.scram > 0, tip: ['{r}SCRAM{/}: parada de emergencia del reactor.', 'Enfría el núcleo rápidamente pero corta TODA la energía (salvo baterías) durante 6 minutos.'] })) scram(run);
+    if (ui.button('overload', x + w - 9, y + 2, run.ship.overload ? '{r}SOBR!{/}' : 'Sobr.', { w: 8, selected: !!run.ship.overload, danger: !!run.ship.overload, tip: ['{O}Sobrecarga del reactor{/}', '+3 unidades de energía, pero el núcleo se calienta más del doble de rápido.', '{d}Útil en combate o con frío extremo. Vigila el calor.{/}'] })) toggleOverload(run);
     ui.hline(x + 1, y + 3, w - 2);
     let yy = y + 4;
     const want = run.ship.want || run.ship.power;
@@ -921,6 +1009,12 @@ export class FlightScreen {
       if (yy >= y + h - 1) break;
       ui.mtext(x + 2, yy++, l, C.o4, null, w - 4);
     }
+    yy++;
+    if (yy < y + h - 3) {
+      const tip = TIPS[Math.floor(app.time / 12) % TIPS.length];
+      ui.mtext(x + 2, yy++, '{y}Consejo del instructor{/}', C.o4, null, w - 4);
+      ui.mwrap(x + 2, yy, w - 4, `{d}${tip}{/}`, C.o4, { maxLines: y + h - 1 - yy });
+    }
   }
 
   drawCrewSel(x, y, w, h, c) {
@@ -991,6 +1085,10 @@ export class FlightScreen {
       ui.region(id, x + 2, yy, w - 4, 1, { cursor: 'help', sound: false });
       ui.mtext(x + 2, yy++, m ? `${s.name}: {l}${m.name}{/}` : `${s.name}: {x}vacío{/}`, C.o3, null, w - 4);
       if (m) ui.tip(id, modLines(m));
+    }
+    if (yy < y + h - 2) {
+      if (ui.button('vent_' + roomId, x + 2, yy, rs.vent > 0 ? `Despresurizando… ${Math.ceil(rs.vent)}` : 'Despresurizar sala', { w: w - 4, danger: true, disabled: rs.vent > 0, tip: ['{r}Despresurizar{/}: abre la sala al exterior durante 4 minutos.', 'Ahoga cualquier incendio, pero el aire y el calor escapan. Quien se quede dentro se asfixia.'] })) ventRoom(run, roomId);
+      yy++;
     }
     yy++;
     // acciones específicas

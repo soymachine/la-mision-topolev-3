@@ -283,6 +283,16 @@ export class ShipView {
     const t = this.app.time;
     const ox = this.ox;
     const oy = this.oy;
+    // ruta del tripulante seleccionado
+    const selC = opts.selCrew && run.crew.find((c) => c.id === opts.selCrew);
+    if (selC && selC.path && selC.path.length) {
+      const W = this.L.W;
+      for (let i = 0; i < selC.path.length; i++) {
+        const k = selC.path[i];
+        const a = 0.35 + 0.35 * Math.sin(t * 6 - i * 0.6);
+        term.ent(ox + (k % W), oy + Math.floor(k / W), '·', C.gold, null, a);
+      }
+    }
     for (const c of alive(run)) {
       if (c.x == null) continue;
       const sel = opts.selCrew === c.id;

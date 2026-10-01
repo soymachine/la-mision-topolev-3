@@ -122,7 +122,10 @@ function maintainStations(run, f, ctx) {
         type: 'station', cat: s.cat, room: s.room, station: s.id, label: s.label, x: s.x, y: s.y, slots: 1, persistent: true,
         weight: s.id === 'piloto' ? 200 : s.id === 'navegante' ? 85 : s.id === 'reactor' ? (run.ship.heat > 70 ? 160 : 60) : s.minor ? -40 : s.cat === 'armas' ? (f.combat || f.incoming ? 120 : -20) : 0,
       });
-      if (s.cat === 'armas') t.weight = f.combat || f.incoming ? 140 : -30;
+      const fight = f.combat || f.incoming;
+      if (s.cat === 'armas') t.weight = fight ? 260 : -30;
+      else if (fight && ['cocina', 'politica', 'ciencia', 'taller'].includes(s.id)) t.weight = -80;
+      else if (['cocina', 'politica', 'ciencia', 'taller'].includes(s.id)) t.weight = 0;
       if (s.id === 'radio') t.data.urgent = f.radioQueue.some((q) => q.kind === 'iff');
       if (s.id === 'radio') t.weight = t.data.urgent ? 200 : f.radioQueue.length ? 40 : -10;
     } else removeTask(run, key);
@@ -167,7 +170,7 @@ function maintainHazardTasks(run, f) {
 // --- Sistemas -------------------------------------------------------------
 export const BATTERY = 2;
 function powerCap(run, f, ctx) {
-  let cap = ctx.stats.power;
+  let cap = ctx.stats.power + (run.ship.overload && ctx.stats.power > 0 ? 3 : 0);
   if (run.ship.scram > 0) cap = 0;
   if (f.drain > 0) cap = Math.max(0, cap - 3);
   // baterías de emergencia: siempre queda algo para el soporte vital
@@ -215,7 +218,7 @@ function stepReactor(run, f, ctx, dt) {
   const op = ctx.atStation.reactor;
   let cool = 1.1 + ctx.stats.cool + (op ? 0.5 + op.skills.ing * 0.07 : 0);
   if (core.int < core.maxInt * 0.5) cool *= 0.8;
-  const gen = load * 2.4 * ctx.stats.heat;
+  const gen = load * 2.4 * ctx.stats.heat * (ship.overload ? 2.2 : 1);
   ship.heat = clamp(ship.heat + (gen - cool) * dt, 18, 120);
   const rs = ship.rooms.reactor;
   const leak = Math.max(0, ship.heat - 65) * 1.6 * (1 - ctx.stats.shield) + (core.int < core.maxInt * 0.3 ? 12 : 0);
@@ -319,8 +322,13 @@ function stepRooms(run, f, ctx, dt) {
     if (rs.dark) target -= 4;
     const k = rs.breach > 0 ? 0.3 : 0.06;
     rs.temp += (target - rs.temp) * Math.min(1, k * dt);
-    // oxígeno
-    if (rs.breach > 0) rs.o2 = Math.max(0, rs.o2 - TUNE.breachO2 * rs.breach * dt);
+    // oxígeno (despresurización voluntaria = como una gran brecha)
+    if (rs.vent > 0) {
+      rs.vent = Math.max(0, rs.vent - dt);
+      rs.o2 = Math.max(0, rs.o2 - 30 * dt);
+      rs.temp += (out - rs.temp) * Math.min(1, 0.4 * dt);
+      if (rs.vent <= 0) alert(run, `${room.name}: compuertas cerradas, represurizando.`, 'info');
+    } else if (rs.breach > 0) rs.o2 = Math.max(0, rs.o2 - TUNE.breachO2 * rs.breach * dt);
     else {
       const regen = (vital === 0 ? -0.15 : vital === 1 ? 2.5 : 4.5) * (1 + ctx.stats.o2);
       rs.o2 = clamp(rs.o2 + regen * dt, 0, 100);
@@ -453,8 +461,10 @@ function land(run, f) {
     rs.breach = 0;
     rs.o2 = 100;
     rs.rad = 0;
+    rs.vent = 0;
   }
   run.ship.heat = 25;
+  run.ship.overload = false;
   run.stats.legs++;
   for (const c of run.crew) {
     c.act = null;
@@ -512,6 +522,21 @@ export function scram(run) {
   run.ship.scram = 6;
   alert(run, 'SCRAM: barras de control insertadas. Sin energía durante unos minutos.', 'warn', { sound: 'scram' });
   return true;
+}
+
+export function ventRoom(run, roomId) {
+  const rs = run.ship.rooms[roomId];
+  if (!rs || rs.vent > 0) return false;
+  rs.vent = 4;
+  alert(run, `Despresurizando ${layout().rooms[roomId].name}: el fuego se ahogará… y quien esté dentro, también.`, 'warn', { sound: 'hiss' });
+  emit(run, { kind: 'breach', room: roomId });
+  return true;
+}
+
+export function toggleOverload(run) {
+  run.ship.overload = !run.ship.overload;
+  alert(run, run.ship.overload ? 'Reactor en SOBRECARGA: +3 de energía, el calor se dispara.' : 'Sobrecarga desactivada.', run.ship.overload ? 'warn' : 'info', { sound: run.ship.overload ? 'warn' : 'click' });
+  return run.ship.overload;
 }
 
 export function orderCrew(run, crewId, order) {

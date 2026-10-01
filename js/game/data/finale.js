@@ -54,7 +54,7 @@ export const ENDINGS = {
   },
   verdad: {
     kind: 'win', score: 2600, title: 'LA VERDAD DE TUNGUSKA', art: 'epicentro',
-    text: (run) => `Lo que cayó en 1908 no era un meteorito. Era una sonda, y lleva cincuenta y tres años haciendo la misma pregunta a un planeta que no sabía escuchar.\n\nCon el conocimiento acumulado durante el viaje, la científica de a bordo traduce la respuesta a la frecuencia de la Señal y el Topolev la emite con toda la potencia de su reactor. No es una respuesta soviética ni americana. Es una respuesta humana.\n\nLa esfera se ilumina, se eleva sobre la taiga y se va. Durante tres minutos, todas las radios del mundo —en Moscú, en Washington, en Pekín— reciben el mismo mensaje. Nadie sabe qué decir después. Por primera vez en años, nadie dispara.`,
+    text: (run) => `Lo que cayó en 1908 no era un meteorito. Era una sonda, y lleva cincuenta y tres años haciendo la misma pregunta a un planeta que no sabía escuchar.\n\nCon el conocimiento acumulado durante el viaje, ${scientist(run)} traduce la respuesta a la frecuencia de la Señal y el Topolev la emite con toda la potencia de su reactor. No es una respuesta soviética ni americana. Es una respuesta humana.\n\nLa esfera se ilumina, se eleva sobre la taiga y se va. Durante tres minutos, todas las radios del mundo —en Moscú, en Washington, en Pekín— reciben el mismo mensaje. Nadie sabe qué decir después. Por primera vez en años, nadie dispara.`,
   },
   respuesta: {
     kind: 'win', score: 1900, title: 'UNA RESPUESTA A MEDIAS', art: 'epicentro',
@@ -85,6 +85,11 @@ export const ENDINGS = {
     text: () => 'El plazo hace tiempo que expiró. Moscú pierde la paciencia: la misión se cancela por radio y se os ordena regresar de inmediato. Nadie os recibe en Zhukovski excepto un comité de investigación.\n\nOtros llegarán a Tunguska. Otros oirán la Señal. Vosotros solo oiréis preguntas.',
   },
 };
+
+function scientist(run) {
+  const list = alive(run).sort((a, b) => b.skills.cie - a.skills.cie);
+  return list.length ? displayName(list[0]) : 'la tripulación';
+}
 
 export function computeScore(run) {
   const E = ENDINGS[run.over?.ending] || { score: 0 };

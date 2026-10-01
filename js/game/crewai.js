@@ -2,13 +2,22 @@
 
 import { layout } from './ship.js';
 import { alive, rng, addRes, log, addSuspicion } from './run.js';
-import { tmul, tadd, has, maxHp, displayName, giveXp, a as ga } from './crew.js';
+import { tmul, tadd, has, maxHp, displayName, giveXp as giveXpRaw, a as ga } from './crew.js';
+import { SKILL } from './data/traits.js';
 import { TRAITS, CAT } from './data/traits.js';
 import {
   TUNE, POLICIES, emit, alert, ensureTask, removeTask, crewRoom, injure, die, heal, workRate, outsideTemp,
 } from './fcore.js';
 import { bfs, clamp } from '../engine/util.js';
 import { resolveRadio, completeOrder, scienceGain, polWork } from './stations.js';
+
+let xpRun = null;
+function giveXp(c, skill, amount) {
+  if (giveXpRaw(c, skill, amount) && xpRun) {
+    alert(xpRun, `${displayName(c)} mejora: ${SKILL[skill].name} ${c.skills[skill]}.`, 'good', { sound: 'success' });
+    emit(xpRun, { kind: 'levelup', crew: c.id });
+  }
+}
 
 const NEED_ACTS = ['sleep', 'eat', 'warm', 'patient', 'drink', 'collapse', 'air'];
 
@@ -778,6 +787,7 @@ function checkBreakdown(run, c, dt) {
 // --- Paso por tripulante -------------------------------------------------
 export function stepCrew(run, dt, ctx) {
   const f = run.flight;
+  xpRun = run;
   for (const c of run.crew) {
     if (c.dead) continue;
     updateNeeds(run, c, dt, ctx);

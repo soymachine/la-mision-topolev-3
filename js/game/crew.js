@@ -94,6 +94,7 @@ export function defaultPriorities(c) {
     if (cat.id === 'emergencia') v = 1;
     if (cat.id === 'reparar' && v === 0) v = 3;
     if (cat.id === 'cocina' && v === 0) v = 3;
+    if (cat.id === 'armas' && v === 0) v = 3;
     if (cat.id === 'pilotar' && sk < 3) v = c.role === 'piloto' ? 1 : 0;
     if (cat.id === 'politica' && c.role !== 'comisario') v = sk >= 5 ? 3 : 0;
     p[cat.id] = v;

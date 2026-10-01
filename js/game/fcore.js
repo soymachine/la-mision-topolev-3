@@ -49,9 +49,18 @@ export const SYSTEMS = [
 ];
 export const SYS = Object.fromEntries(SYSTEMS.map((s) => [s.id, s]));
 
+// Luz del día 0 (noche) .. 1 (mediodía)
+export function daylight(clock) {
+  const h = (clock / 60) % 24;
+  if (h < 5 || h >= 21) return 0;
+  if (h < 8) return (h - 5) / 3;
+  if (h >= 18) return (21 - h) / 3;
+  return 1;
+}
+
 export function outsideTemp(run) {
   const R = REGIONS[run.region];
-  return R.temp - 16 - (run.flight?.weather || 0) * 8;
+  return R.temp - 16 - (run.flight?.weather || 0) * 8 - (1 - daylight(run.clock)) * 7;
 }
 
 export function F(run) {
@@ -171,7 +180,7 @@ export function heal(c, amount) {
 export function igniteRoom(run, roomId, amount = 20) {
   const r = run.ship.rooms[roomId];
   if (!r) return;
-  if (r.o2 < 20) return;
+  if (r.o2 < 20 || r.vent > 0) return;
   const was = r.fire;
   r.fire = clamp(Math.max(r.fire, amount), 0, 100);
   if (was <= 0 && r.fire > 0) {
