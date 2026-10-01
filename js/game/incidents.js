@@ -28,13 +28,14 @@ export function planLeg(run, f) {
   const r = rng(run);
   const D = DIFFICULTY[run.difficulty];
   const dur = f.estDur;
-  const lambda = (0.7 + f.danger * 3.2 + f.weather * 2) * (dur / 60) * D.incident;
+  const first = run.stats.legs === 0;
+  const lambda = (0.7 + f.danger * 3.2 + f.weather * 2) * (dur / 60) * D.incident * (first ? 0.35 : 1);
   const n = Math.min(10, poisson(r, lambda));
   const sched = [];
   for (let i = 0; i < n; i++) sched.push({ at: r.float(3, Math.max(5, dur - 4)), type: pickIncident(run, f) });
   // combate
   const pCombat = (0.1 + f.danger * 0.6 + (run.flags.warned ? 0.15 : 0)) * (D.incident > 1 ? 1.15 : D.incident < 1 ? 0.8 : 1);
-  if (r.chance(pCombat) && !f.final) {
+  if (r.chance(pCombat) && !f.final && !first) {
     run.flags.warned = 0;
     sched.push({ at: r.float(dur * 0.15, dur * 0.6), type: 'combate' });
   }

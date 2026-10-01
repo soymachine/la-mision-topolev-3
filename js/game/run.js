@@ -1,7 +1,7 @@
 // Estado de una partida (expediente): creación, recursos, reloj, registro.
 
 import { RNG, hashString } from '../engine/rng.js';
-import { genCrew, resetCrewIds, has } from './crew.js';
+import { genCrew, resetCrewIds, has, seedRelations } from './crew.js';
 import { resetModIds } from './loot.js';
 import { initialModules, initialRooms, shipStats, capacities, VARIANTS } from './ship.js';
 import { genRegionMap, reveal } from './map.js';
@@ -125,6 +125,9 @@ export function newRun({ seed, difficulty = 'estajanovista', variant = 'topolev'
     c.joined = 0;
     run.crew.push(c);
   }
+  // relaciones de partida
+  run.rel = [];
+  for (const c of run.crew) seedRelations(run, r, c, 0.35);
   // como mucho un rasgo oculto «grave» en la tripulación inicial
   let grave = 0;
   for (const c of run.crew) {

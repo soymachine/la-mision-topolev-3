@@ -2,7 +2,7 @@
 
 import { C } from '../../palette.js';
 import { alive } from '../../game/run.js';
-import { miniFace, faceState, displayName, roleName, maxHp, visibleTraits, shortName } from '../../game/crew.js';
+import { miniFace, faceState, displayName, roleName, maxHp, visibleTraits, shortName, relationsOf } from '../../game/crew.js';
 import { TRAITS, ROLES, SKILLS } from '../../game/data/traits.js';
 import { layout } from '../../game/ship.js';
 import { mix, clamp, pad } from '../../engine/util.js';
@@ -49,6 +49,10 @@ export function crewTooltip(run, c) {
   L.push(sk.map((s) => `${s.short} {l}${c.skills[s.id]}{/}`).join('  '));
   const vt = visibleTraits(c);
   if (vt.length) L.push(vt.map((t) => `{${TRAITS[t].kind === 'neg' ? 'r' : TRAITS[t].kind === 'hid' ? 'v' : 'g'}}${TRAITS[t].name}{/}`).join(', '));
+  for (const r of relationsOf(run, c)) {
+    const o = run.crew.find((x) => x.id === r.other);
+    if (o && !o.dead) L.push(r.kind === 'amigo' ? `{g}♥{/} Amistad con ${o.sur}` : `{r}✕{/} Rivalidad con ${o.sur}`);
+  }
   L.push('');
   L.push('{x}Arrastra a una sala, estación o tarea para darle una orden. Clic derecho: cancelar orden. Doble clic: expediente.{/}');
   return L;

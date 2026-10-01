@@ -2,7 +2,7 @@
 
 import { layout } from './ship.js';
 import { alive, rng, addRes, log, addSuspicion } from './run.js';
-import { tmul, tadd, has, maxHp, displayName, giveXp as giveXpRaw, a as ga } from './crew.js';
+import { tmul, tadd, has, maxHp, displayName, giveXp as giveXpRaw, a as ga, relationsOf } from './crew.js';
 import { SKILL } from './data/traits.js';
 import { TRAITS, CAT } from './data/traits.js';
 import {
@@ -227,6 +227,14 @@ export function moraleTarget(run, c, ctx, rs, room) {
   if (has(c, 'cantante') || has(c, 'grunon')) t -= tadd(c, 'aura'); // no se afecta a sí mismo
   // objetos de moral apreciados
   for (const m of ctx.moraleMods) if (m.likes && has(c, m.likes)) t += 6;
+  // amigos y rivales en la misma sala
+  if (run.rel && run.rel.length && room) {
+    for (const r of relationsOf(run, c)) {
+      const o = run.crew.find((x) => x.id === r.other);
+      if (!o || o.dead) continue;
+      if (crewRoom(o) === room) t += r.kind === 'amigo' ? 5 : -6;
+    }
+  }
   return clamp(t, 0, 100);
 }
 
@@ -293,10 +301,15 @@ function startNeed(run, c, kind) {
     setTarget(c, spot != null ? L.seatX[spot] : floorSpot(run, 'comedor'), L.rooms.comedor.floor);
   } else if (kind === 'air') {
     let best = null;
+    let bestScore = -1e9;
     for (const id in run.ship.rooms) {
       const rs = run.ship.rooms[id];
-      if (rs.fire > 0 || rs.breach > 0) continue;
-      if (!best || rs.o2 > run.ship.rooms[best].o2) best = id;
+      if (rs.fire > 0 || rs.breach > 0 || rs.vent > 0) continue;
+      const score = rs.o2 - rs.rad * 2 + Math.min(rs.temp, 15);
+      if (score > bestScore) {
+        bestScore = score;
+        best = id;
+      }
     }
     best = best || 'comedor';
     act.room = best;
@@ -347,7 +360,8 @@ function needDone(run, c, ctx) {
     case 'air': {
       const rs = run.ship.rooms[a.room];
       if (a.t > 6) return true;
-      return !rs || (crewRoom(c) === a.room && rs.o2 > 70);
+      if (!rs || rs.fire > 0 || rs.vent > 0) return true;
+      return crewRoom(c) === a.room && rs.o2 > 70 && rs.rad < 15;
     }
     case 'warm': {
       if (c.cold < 15) return true;
@@ -416,6 +430,13 @@ export function assign(run, ctx) {
   for (const c of crew) {
     if (c.breakdown) continue;
     if (c.act && NEED_ACTS.includes(c.act.kind)) {
+      // peligro en la sala: abandonar lo que se esté haciendo (dormir, comer...)
+      const here = crewRoom(c);
+      const hrs = here ? run.ship.rooms[here] : null;
+      if (hrs && c.act.kind !== 'air' && c.act.kind !== 'collapse' && (hrs.o2 < 45 || hrs.fire > 25 || hrs.rad > 30 || hrs.vent > 0)) {
+        startNeed(run, c, 'air');
+        continue;
+      }
       if (needDone(run, c, ctx)) c.act = null;
       else continue;
     }
@@ -775,7 +796,8 @@ function checkBreakdown(run, c, dt) {
     const room = crewRoom(c);
     const others = alive(run).filter((o) => o !== c && crewRoom(o) === room);
     if (others.length) {
-      const o = r.pick(others);
+      const rivals = relationsOf(run, c).filter((x) => x.kind === 'rival').map((x) => x.other);
+      const o = others.find((x) => rivals.includes(x.id)) || r.pick(others);
       injure(run, c, r.int(5, 12), 'una pelea');
       injure(run, o, r.int(5, 12), 'una pelea');
       o.morale = clamp(o.morale - 10, 0, 100);

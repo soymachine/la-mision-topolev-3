@@ -1,7 +1,7 @@
 // Expediente personal de un tripulante (modal).
 
 import { C } from '../../palette.js';
-import { bigFace, faceState, displayName, fullName, roleName, maxHp, visibleTraits } from '../../game/crew.js';
+import { bigFace, faceState, displayName, fullName, roleName, maxHp, visibleTraits, relationsOf } from '../../game/crew.js';
 import { SKILLS, TRAITS } from '../../game/data/traits.js';
 import { fmtClock } from '../../game/run.js';
 import { mix, pad } from '../../engine/util.js';
@@ -73,6 +73,16 @@ export function drawDossier(app, run, c, opts = {}) {
     term.text(rx, ry++, '• ???', C.grey2);
     ui.mtext(rx + 2, ry++, '{x}Algo no encaja en este expediente.{/}', C.o3);
   } else if (!visibleTraits(c).length) term.text(rx, ry++, 'Ninguno destacable.', C.o2);
+  const rels = relationsOf(run, c);
+  if (rels.length) {
+    ry++;
+    term.text(rx, ry++, 'RELACIONES', C.o5, null, 1);
+    for (const r of rels) {
+      const o = run.crew.find((x) => x.id === r.other);
+      if (!o) continue;
+      ui.mtext(rx, ry++, `${r.kind === 'amigo' ? '{g}♥ Amistad{/}' : '{r}✕ Rivalidad{/}'} con {l}${displayName(o)}{/}${o.dead ? ' {x}(✝){/}' : ''}`, C.o4, null, pw - (rx - px) - 4);
+    }
+  }
   ry++;
   term.text(rx, ry++, 'HOJA DE SERVICIO', C.o5, null, 1);
   const s = c.stats;

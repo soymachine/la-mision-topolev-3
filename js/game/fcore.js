@@ -3,7 +3,7 @@
 import { layout } from './ship.js';
 import { REGIONS } from './data/regions.js';
 import { alive, log, rng } from './run.js';
-import { tmul, maxHp, displayName, a as ga } from './crew.js';
+import { tmul, maxHp, displayName, a as ga, relationsOf } from './crew.js';
 import { clamp } from '../engine/util.js';
 import { onDeath } from './directives.js';
 
@@ -169,7 +169,11 @@ export function die(run, c, cause) {
   run.stats.deaths++;
   onDeath(run);
   for (const o of alive(run)) o.morale = clamp(o.morale - 14, 0, 100);
-  alert(run, `${displayName(c)} ha ${ga(c, 'muerto', 'muerto')}: ${cause}.`, 'danger', { pause: true, sound: 'fail' });
+  for (const r of relationsOf(run, c)) {
+    const o = run.crew.find((x) => x.id === r.other);
+    if (o && !o.dead && r.kind === 'amigo') o.morale = clamp(o.morale - 25, 0, 100);
+  }
+  alert(run, `${displayName(c)} ha muerto: ${cause}.`, 'danger', { pause: true, sound: 'fail' });
   emit(run, { kind: 'death', crew: c.id, x: c.x, y: c.y });
 }
 

@@ -259,3 +259,25 @@ export function faceState(c) {
   if (c.breakdown) return 'panic';
   return 'ok';
 }
+
+// --- Relaciones -----------------------------------------------------------
+export function relationsOf(run, c) {
+  return (run.rel || []).filter((r) => r.a === c.id || r.b === c.id).map((r) => ({ kind: r.kind, other: r.a === c.id ? r.b : r.a }));
+}
+
+export function addRelation(run, a, b, kind) {
+  run.rel = run.rel || [];
+  if (a.id === b.id) return;
+  if (run.rel.some((r) => (r.a === a.id && r.b === b.id) || (r.a === b.id && r.b === a.id))) return;
+  run.rel.push({ a: a.id, b: b.id, kind });
+}
+
+// Relaciones al azar para un recién llegado (o para la tripulación inicial)
+export function seedRelations(run, rng, c, chance = 0.3) {
+  const others = run.crew.filter((o) => !o.dead && o.id !== c.id);
+  if (!others.length || !rng.chance(chance)) return;
+  const o = rng.pick(others);
+  const sameOrigin = o.origin === c.origin;
+  const kind = sameOrigin || rng.chance(0.6) ? 'amigo' : 'rival';
+  addRelation(run, c, o, kind);
+}

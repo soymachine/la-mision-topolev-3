@@ -2,13 +2,13 @@
 
 import { C } from '../palette.js';
 import { mix, clamp, pad, padL } from '../engine/util.js';
-import { RES, caps, alive, addRes, log, fmtClock } from '../game/run.js';
+import { RES, caps, alive, addRes, log, fmtClock, rng } from '../game/run.js';
 import { market, buyPrice, sellPrice, hullRepairCost, moduleRepairCost, passTime } from '../game/nodes.js';
 import { NODE_TYPES } from '../game/data/regions.js';
 import { modLines, modTitle, modPrice } from '../game/loot.js';
 import { MODTYPES, QUALITY } from '../game/data/modules.js';
 import { layout } from '../game/ship.js';
-import { miniFace, displayName, roleName, visibleTraits, maxHp } from '../game/crew.js';
+import { miniFace, displayName, roleName, visibleTraits, maxHp, seedRelations } from '../game/crew.js';
 import { SKILLS, TRAITS } from '../game/data/traits.js';
 import { saveGame } from '../game/save.js';
 import { resourceBar, suspicionMeter, clockWidget, sectionTitle, resColor } from './ui/common.js';
@@ -312,6 +312,7 @@ export class StationScreen {
         delete c.price;
         c.joined = run.clock;
         run.crew.push(c);
+        seedRelations(run, rng(run), c, 0.3);
         log(run, `${displayName(c)} se une a la tripulación.`, 'good');
         this.say(`${displayName(c)} contratado`);
       }

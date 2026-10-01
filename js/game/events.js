@@ -2,7 +2,7 @@
 
 import { RNG } from '../engine/rng.js';
 import { rng, alive, addRes, addSuspicion, disloyal, log, RES, caps } from './run.js';
-import { genCrew, displayName, giveXp, maxHp, has, a as ga } from './crew.js';
+import { genCrew, displayName, giveXp, maxHp, has, a as ga, seedRelations } from './crew.js';
 import { genModule, modTitle } from './loot.js';
 import { SKILL } from './data/traits.js';
 import { EVENTS } from './data/events.js';
@@ -86,6 +86,7 @@ export function makeFx(run, ctx) {
     recruit(c) {
       c.joined = run.clock;
       run.crew.push(c);
+      seedRelations(run, rng(run), c, 0.3);
       out.push(`{O}${displayName(c)} se une a la tripulación{/}`);
       return c;
     },
