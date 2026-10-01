@@ -589,28 +589,34 @@ export class FlightScreen {
     if (ui.button('scram', x + w - 9, y + 1, 'SCRAM', { w: 8, danger: true, disabled: run.ship.scram > 0, tip: ['{r}SCRAM{/}: parada de emergencia del reactor.', 'Enfría el núcleo rápidamente pero corta TODA la energía durante 6 minutos.'] })) scram(run);
     ui.hline(x + 1, y + 3, w - 2);
     let yy = y + 4;
+    const want = run.ship.want || run.ship.power;
+    const wantSum = SYSTEMS.reduce((a, s2) => a + (want[s2.id] || 0), 0);
     for (const sys of SYSTEMS) {
       if (yy >= y + h - 1) break;
       const v = run.ship.power[sys.id] || 0;
+      const wv = want[sys.id] || 0;
       const id = 'sys_' + sys.id;
       const st = ui.region(id, x + 1, yy, 16, 1, { cursor: 'help', sound: false });
-      term.text(x + 2, yy, pad(sys.name, 14), st.hot ? C.o7 : v ? C.o5 : C.o3);
-      ui.tip(id, [`{O}${sys.name}{/}`, sys.desc, '{d}Clic en los bloques para asignar energía. Clic derecho: quitar.{/}']);
+      term.text(x + 2, yy, pad(sys.name, 14), st.hot ? C.o7 : v ? C.o5 : wv ? C.red2 : C.o3);
+      ui.tip(id, [`{O}${sys.name}{/}`, sys.desc, wv > v ? '{r}Sin energía suficiente: se restablecerá cuando el reactor pueda.{/}' : '', '{d}Clic en los bloques para asignar energía. Clic derecho: quitar.{/}']);
       for (let i = 0; i < sys.max; i++) {
         const pid = `pip_${sys.id}_${i}`;
         const px = x + 17 + i * 2;
         const ps = ui.region(pid, px, yy, 2, 1, { sound: false });
         const on = i < v;
+        const wanted = i < wv;
         const hv = ui.hoverT(pid);
-        const avail = used - v + (i + 1) <= cap;
-        term.put(px, yy, on ? '■' : '□', on ? mix(C.o5, C.o7, hv) : avail ? mix(C.o2, C.o4, hv) : C.greyD, hv > 0.3 ? C.bg3 : null);
+        const avail = wantSum - wv + (i + 1) <= cap;
+        const g = on ? '■' : wanted ? '▣' : '□';
+        const col = on ? mix(C.o5, C.o7, hv) : wanted ? C.red : avail ? mix(C.o2, C.o4, hv) : C.greyD;
+        term.put(px, yy, g, col, hv > 0.3 ? C.bg3 : null);
         if (ps.clicked) {
-          setPower(run, sys.id, on && v === i + 1 ? i : i + 1);
+          setPower(run, sys.id, wanted && wv === i + 1 ? i : i + 1);
           app.audio.play('click');
         }
-        if (ps.rclicked) setPower(run, sys.id, Math.max(0, v - 1));
+        if (ps.rclicked) setPower(run, sys.id, Math.max(0, wv - 1));
       }
-      if (st.rclicked) setPower(run, sys.id, Math.max(0, v - 1));
+      if (st.rclicked) setPower(run, sys.id, Math.max(0, wv - 1));
       // indicador de necesidad
       const warn = this.sysWarning(sys.id);
       if (warn) term.text(x + 24, yy, warn[0], warn[1]);

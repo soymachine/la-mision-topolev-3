@@ -12,17 +12,17 @@ export const RUN_VERSION = 3;
 export const DIFFICULTY = {
   camarada: {
     name: 'Camarada', desc: 'Para conocer el Topolev. Más plazo, menos incidentes, Moscú es comprensiva.',
-    days: 9, incident: 0.7, susp: 0.7, needs: 0.85,
+    days: 8, incident: 0.75, susp: 0.7, needs: 0.85,
     start: { fuel: 30, rations: 42, meals: 8, parts: 30, meds: 8, ammo: 160, vodka: 10, flares: 3, rubles: 500, knowledge: 0 },
   },
   estajanovista: {
     name: 'Estajanovista', desc: 'La experiencia prevista por el Comité Central. Exigente pero justa.',
-    days: 7.5, incident: 1, susp: 1, needs: 1,
+    days: 6.5, incident: 1, susp: 1, needs: 1,
     start: { fuel: 26, rations: 34, meals: 6, parts: 22, meds: 6, ammo: 120, vodka: 6, flares: 2, rubles: 320, knowledge: 0 },
   },
   purga: {
     name: 'Purga', desc: 'Moscú no perdona. Plazos ajustados, la nave falla, el KGB ve traidores en todas partes.',
-    days: 6.5, incident: 1.35, susp: 1.3, needs: 1.15,
+    days: 5.5, incident: 1.35, susp: 1.3, needs: 1.15,
     start: { fuel: 22, rations: 26, meals: 4, parts: 16, meds: 4, ammo: 90, vodka: 4, flares: 1, rubles: 160, knowledge: 0 },
   },
 };
@@ -95,6 +95,7 @@ export function newRun({ seed, difficulty = 'estajanovista', variant = 'topolev'
       slots: initialModules(r, variant),
       rooms: initialRooms(),
       power: { calef: 2, vital: 1, armas: 2, radar: 1, radio: 1, medico: 0, cocina: 1, taller: 0 },
+      want: { calef: 2, vital: 1, armas: 2, radar: 1, radio: 1, medico: 0, cocina: 1, taller: 0 },
       throttle: 1,
       heat: 25,
       scram: 0,

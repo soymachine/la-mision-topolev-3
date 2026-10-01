@@ -28,12 +28,12 @@ export function planLeg(run, f) {
   const r = rng(run);
   const D = DIFFICULTY[run.difficulty];
   const dur = f.estDur;
-  const lambda = (0.4 + f.danger * 2.4 + f.weather * 1.3) * (dur / 60) * D.incident;
-  const n = Math.min(8, poisson(r, lambda));
+  const lambda = (0.7 + f.danger * 3.2 + f.weather * 2) * (dur / 60) * D.incident;
+  const n = Math.min(10, poisson(r, lambda));
   const sched = [];
   for (let i = 0; i < n; i++) sched.push({ at: r.float(3, Math.max(5, dur - 4)), type: pickIncident(run, f) });
   // combate
-  const pCombat = (0.06 + f.danger * 0.5 + (run.flags.warned ? 0.15 : 0)) * (D.incident > 1 ? 1.15 : D.incident < 1 ? 0.8 : 1);
+  const pCombat = (0.1 + f.danger * 0.6 + (run.flags.warned ? 0.15 : 0)) * (D.incident > 1 ? 1.15 : D.incident < 1 ? 0.8 : 1);
   if (r.chance(pCombat) && !f.final) {
     run.flags.warned = 0;
     sched.push({ at: r.float(dur * 0.15, dur * 0.6), type: 'combate' });
@@ -294,6 +294,12 @@ export function stepCombat(run, dt, ctx) {
     }
     if (e.dist > 32) e.dist -= E.speed * 0.6 * dt;
     if (r.chance(dt * 0.08)) e.sector = r.pick(SECTORS);
+    // combustible limitado: acaban retirándose
+    if (e.t > (e.maxT || (e.maxT = r.float(18, 30)))) {
+      e.fleeing = true;
+      alert(run, `${E.name} rompe el contacto y se retira.`, 'info');
+      continue;
+    }
     e.cd -= dt;
     if (e.dist <= 45 && e.cd <= 0) {
       e.cd = r.float(E.rate[0], E.rate[1]);
@@ -378,15 +384,15 @@ function enemyAttack(run, e, E, ev, ctx) {
 
 export function hitRoom(run, room, dmg, source) {
   const r = rng(run);
-  damageRoom(run, room, dmg * 1.6);
+  damageRoom(run, room, dmg * 2);
   const mods = modulesInRoom(run, room);
   if (mods.length) {
     const sid = layout().slots.filter((s) => s.room === room && run.ship.slots[s.id]).map((s) => s.id);
-    if (sid.length) damageModule(run, r.pick(sid), dmg * 2.2);
+    if (sid.length) damageModule(run, r.pick(sid), dmg * 2.6);
   }
-  if (r.chance(0.16 + dmg * 0.012)) igniteRoom(run, room, 15 + dmg * 2);
+  if (r.chance(0.2 + dmg * 0.015)) igniteRoom(run, room, 15 + dmg * 2);
   const rs = run.ship.rooms[room];
-  if (r.chance(0.08 + (100 - rs.int) / 260)) breachRoom(run, room, 1);
+  if (r.chance(0.1 + (100 - rs.int) / 220)) breachRoom(run, room, 1);
   for (const c of alive(run)) {
     if (crewRoom(c) === room && r.chance(0.32)) injure(run, c, dmg * r.float(1, 1.8), `metralla (${source})`);
   }

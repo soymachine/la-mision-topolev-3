@@ -148,7 +148,7 @@ function maintainHazardTasks(run, f) {
       const room = L.rooms[s.room];
       ensureTask(run, key, {
         type: 'repair', cat: 'reparar', room: s.room, label: `Reparar ${m.name.split('«')[0].trim()}`, slots: 2,
-        weight: m.int <= 0 ? 70 : 25, data: { slot: s.id }, x: s.type === 'motor' ? L.engineSpot[s.room] : null, y: s.type === 'motor' ? room.floor : null,
+        weight: m.int <= 0 ? (s.type === 'reactor' || s.type === 'motor' ? 160 : 70) : s.type === 'reactor' ? 45 : 25, data: { slot: s.id }, x: s.type === 'motor' ? L.engineSpot[s.room] : null, y: s.type === 'motor' ? room.floor : null,
       });
     }
   }
@@ -165,30 +165,38 @@ function maintainHazardTasks(run, f) {
 }
 
 // --- Sistemas -------------------------------------------------------------
+export const BATTERY = 2;
 function powerCap(run, f, ctx) {
   let cap = ctx.stats.power;
   if (run.ship.scram > 0) cap = 0;
   if (f.drain > 0) cap = Math.max(0, cap - 3);
-  return cap;
+  // baterías de emergencia: siempre queda algo para el soporte vital
+  f.onBattery = cap < BATTERY;
+  return Math.max(cap, BATTERY);
 }
 
 export function powerUsed(run) {
   return SYSTEMS.reduce((s, sys) => s + (run.ship.power[sys.id] || 0), 0);
 }
 
+const POWER_ORDER = ['vital', 'calef', 'armas', 'radio', 'radar', 'medico', 'cocina', 'taller'];
+
+// Reparte la energía deseada por el jugador según la capacidad disponible
+export function allocatePower(run, cap) {
+  const ship = run.ship;
+  if (!ship.want) ship.want = { ...ship.power };
+  let left = cap;
+  for (const id of POWER_ORDER) {
+    const w = ship.want[id] || 0;
+    const v = Math.max(0, Math.min(w, left));
+    ship.power[id] = v;
+    left -= v;
+  }
+}
+
 function enforcePower(run, f, ctx) {
   const cap = powerCap(run, f, ctx);
-  const order = ['taller', 'cocina', 'medico', 'radio', 'radar', 'armas', 'calef', 'vital'];
-  let used = powerUsed(run);
-  let i = 0;
-  while (used > cap && i < 200) {
-    const id = order[i % order.length];
-    if ((run.ship.power[id] || 0) > 0) {
-      run.ship.power[id]--;
-      used--;
-    }
-    i++;
-  }
+  allocatePower(run, cap);
   f.powerCap = cap;
 }
 
@@ -247,7 +255,7 @@ function stepEngines(run, f, ctx, dt) {
     thrust += m.stats.thrust * eff;
     fuel += m.stats.fuel * thr.fuel;
     // desgaste y fallos
-    m.int = Math.max(0, m.int - 0.012 * thr.wear * dt * (2 - m.rel));
+    m.int = Math.max(0, m.int - 0.045 * thr.wear * dt * (2 - m.rel));
     const pFail = (1 - m.rel) * 0.0035 * thr.wear * (m.int < m.maxInt * 0.5 ? 2 : 1) * DIFFICULTY[run.difficulty].incident;
     if (rng(run).chance(pFail * dt)) {
       damageModule(run, id, rng(run).int(15, 30));
@@ -322,15 +330,15 @@ function stepRooms(run, f, ctx, dt) {
     if (rs.fire > 0) {
       if (rs.o2 < 15) rs.fire = Math.max(0, rs.fire - 8 * dt);
       else rs.fire = Math.min(100, rs.fire + TUNE.fireGrow * (rs.o2 / 100) * (1 - ctx.stats.fireSup) * dt);
-      damageRoom(run, room.id, rs.fire * 0.006 * dt);
-      for (const s of L.slots) if (s.room === room.id && ship.slots[s.id]) ship.slots[s.id].int = Math.max(0, ship.slots[s.id].int - rs.fire * 0.01 * dt);
+      damageRoom(run, room.id, rs.fire * 0.016 * dt);
+      for (const s of L.slots) if (s.room === room.id && ship.slots[s.id]) ship.slots[s.id].int = Math.max(0, ship.slots[s.id].int - rs.fire * 0.022 * dt);
       if (room.id === 'bodega' && r.chance(dt * rs.fire * 0.002)) {
         const lost = Math.min(run.res.rations, r.int(1, 3));
         addRes(run, 'rations', -lost);
       }
-      if (rs.fire > 55) {
+      if (rs.fire > 45) {
         for (const id of L.adj[room.id]) {
-          if (r.chance(0.012 * dt * (rs.fire / 60))) igniteRoom(run, id, 15);
+          if (r.chance(0.02 * dt * (rs.fire / 60))) igniteRoom(run, id, 15);
         }
       }
       rs.smoke = Math.min(100, rs.smoke + rs.fire * 0.05 * dt);
@@ -383,7 +391,7 @@ function tick(run, f, dt) {
   f.t += dt;
   run.clock += dt;
   // Moscú se impacienta: la sospecha crece despacio durante el vuelo
-  run.suspicion = Math.min(100, run.suspicion + (dt / 60) * 0.9 * DIFFICULTY[run.difficulty].susp);
+  run.suspicion = Math.min(100, run.suspicion + (dt / 60) * 1.4 * DIFFICULTY[run.difficulty].susp);
   const ctx = buildCtx(run, f);
   enforcePower(run, f, ctx);
   // incidentes programados
@@ -429,7 +437,7 @@ function tick(run, f, dt) {
     }
     f.arrived = true;
     land(run, f);
-  } else if (f.outOfFuel && f.speedKmh <= 0 && !f.combat) {
+  } else if (f.outOfFuel && f.speedKmh <= 0) {
     f.arrived = true;
     f.forced = true;
     land(run, f);
@@ -461,12 +469,15 @@ function land(run, f) {
 export function setPower(run, sys, value) {
   const S = SYSTEMS.find((s) => s.id === sys);
   if (!S) return false;
+  const ship = run.ship;
+  if (!ship.want) ship.want = { ...ship.power };
   value = clamp(value, 0, S.max);
   const f = run.flight;
-  const cap = f?.powerCap ?? shipStats(run.ship).power;
-  const used = powerUsed(run) - (run.ship.power[sys] || 0);
+  const cap = f?.powerCap ?? shipStats(ship).power;
+  const used = SYSTEMS.reduce((a, s2) => a + (s2.id === sys ? 0 : ship.want[s2.id] || 0), 0);
   if (used + value > cap) value = Math.max(0, cap - used);
-  run.ship.power[sys] = value;
+  ship.want[sys] = value;
+  allocatePower(run, cap);
   return true;
 }
 

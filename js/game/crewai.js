@@ -10,7 +10,7 @@ import {
 import { bfs, clamp } from '../engine/util.js';
 import { resolveRadio, completeOrder, scienceGain, polWork } from './stations.js';
 
-const NEED_ACTS = ['sleep', 'eat', 'warm', 'patient', 'drink', 'collapse'];
+const NEED_ACTS = ['sleep', 'eat', 'warm', 'patient', 'drink', 'collapse', 'air'];
 
 export function placeCrew(run) {
   const L = layout();
@@ -175,7 +175,10 @@ export function updateNeeds(run, c, dt, ctx) {
   else if (effT > 12) c.cold = Math.max(0, c.cold - (effT - 12) * 0.05 * dt - 0.1 * dt);
   if (c.cold > 70) injure(run, c, (c.cold - 70) * 0.006 * dt, 'hipotermia');
   // oxígeno
-  if (rs && rs.o2 < 40) injure(run, c, (rs.o2 < 20 ? 0.9 : 0.25) * dt, 'asfixia');
+  if (rs && rs.o2 < 40) {
+    const masked = act === 'task' && c.atWork && ['breach', 'fire', 'repair', 'hull'].includes(run.flight.tasks.find((t) => t.id === c.act.taskId)?.type);
+    injure(run, c, (rs.o2 < 20 ? 0.7 : 0.2) * (masked ? 0.3 : 1) * dt, 'asfixia');
+  }
   // fuego en la sala
   if (rs && rs.fire > 0) injure(run, c, (rs.fire / 100) * (act === 'task' ? 0.45 : 0.9) * dt, 'quemaduras');
   // radiación
@@ -231,6 +234,9 @@ function needAction(run, c, ctx) {
   const curTask = cur?.kind === 'task' ? f.tasks.find((t) => t.id === cur.taskId) : null;
   const urgent = isUrgentTask(curTask) || (c.order && c.order.kind === 'task');
   const forced = !!c.order;
+  const here = crewRoom(c);
+  const hrs = here ? run.ship.rooms[here] : null;
+  if (hrs && hrs.o2 < 45 && !(urgent && curTask && curTask.room === here) && cur?.kind !== 'air') return { kind: 'air' };
   if (c.fatigue >= 100 && cur?.kind !== 'sleep') return { kind: 'collapse' };
   if (c.hp < maxHp(c) * (P.heal / 100) && !(urgent && c.hp > 25) && !(forced && c.hp > 20)) {
     return { kind: 'patient' };
@@ -276,6 +282,16 @@ function startNeed(run, c, kind) {
     }
     act.spot = spot;
     setTarget(c, spot != null ? L.seatX[spot] : floorSpot(run, 'comedor'), L.rooms.comedor.floor);
+  } else if (kind === 'air') {
+    let best = null;
+    for (const id in run.ship.rooms) {
+      const rs = run.ship.rooms[id];
+      if (rs.fire > 0 || rs.breach > 0) continue;
+      if (!best || rs.o2 > run.ship.rooms[best].o2) best = id;
+    }
+    best = best || 'comedor';
+    act.room = best;
+    setTarget(c, floorSpot(run, best), L.rooms[best].floor);
   } else if (kind === 'warm') {
     let best = null;
     for (const id in run.ship.rooms) {
@@ -319,6 +335,11 @@ function needDone(run, c, ctx) {
       return a.done;
     case 'drink':
       return a.done;
+    case 'air': {
+      const rs = run.ship.rooms[a.room];
+      if (a.t > 6) return true;
+      return !rs || (crewRoom(c) === a.room && rs.o2 > 70);
+    }
     case 'warm': {
       if (c.cold < 15) return true;
       const rs = run.ship.rooms[a.room];
@@ -368,6 +389,8 @@ function doNeed(run, c, dt, arrived) {
         }
       }
     }
+  } else if (a.kind === 'air') {
+    // espera a recuperar el aliento
   } else if (a.kind === 'sleep' || a.kind === 'collapse') {
     if (Math.random() < dt * 0.25) emit(run, { kind: 'zzz', crew: c.id });
   }

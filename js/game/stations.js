@@ -124,11 +124,11 @@ export function polWork(run, c, rate, dt, ctx) {
   f.polAcc = (f.polAcc || 0) + rate * dt * (has(c, 'leal') ? 1.2 : 1);
   if (focus === 'informe' && f.polAcc >= 48) {
     f.polAcc = 0;
-    addSuspicion(run, -2);
+    addSuspicion(run, -1.5);
     run.stats.reports = (run.stats.reports || 0) + 1;
     onReport(run);
     emit(run, { kind: 'stamp', x: c.x, y: c.y });
-    log(run, `${displayName(c)} envía un informe a Moscú. Sospecha −2.`, 'good');
+    log(run, `${displayName(c)} envía un informe a Moscú. Sospecha −1,5.`, 'good');
   } else if (focus === 'moral' && f.polAcc >= 30) {
     f.polAcc = 0;
     for (const o of alive(run)) {
