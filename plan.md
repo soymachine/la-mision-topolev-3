@@ -278,6 +278,11 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
 
 ---
 
+## 3b. Estado actual
+**Juego completo y jugable de principio a fin** (todas las fases 0–14 terminadas). Las mejoras
+opcionales están en la sección 5. Antes de tocar el equilibrio, ejecutar
+`node tests/fullrun.mjs 10 <dificultad>` y comparar los finales.
+
 ## 4. Registro de sesiones
 - Sesión 1: diseño y plan; motor ASCII completo; todas las pantallas; simulación de vuelo;
   mapas procedurales; 67 eventos; finales; meta-progresión; pruebas en Node y Playwright;
