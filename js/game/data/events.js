@@ -5,6 +5,7 @@ import { rng, alive, addRes, fmtClock } from '../run.js';
 import { displayName, has, a as ga } from '../crew.js';
 import { REGIONS } from './regions.js';
 import { FINALE } from './finale.js';
+import { EVENTS2 } from './events2.js';
 import { genDirective } from '../directives.js';
 
 const R = (run) => rng(run);
@@ -33,6 +34,12 @@ export const EVENTS = {
       return [
         { label: 'Colaborar con la inspección', desc: 'Dos horas de papeleo. Si hay algo extranjero a bordo, lo encontrarán.', fx: (run, ctx, E) => {
           E.time(120);
+          const dis = alive(run).find((c) => has(c, 'disidente') && !c.flags?.protected);
+          if (dis && R(run).chance(0.5)) {
+            dis.revealed.disidente = true;
+            E.susp(15, `Literatura prohibida en la taquilla de ${dis.sur}`);
+            return `Encuentran libros prohibidos en la taquilla de ${nm(dis)}. Se los llevan, y con ellos vuestra reputación.`;
+          }
           if (illegal) {
             E.susp(12, 'Material americano encontrado a bordo');
             return 'Encuentran el equipo americano. Lo fotografían todo, lo anotan todo y se marchan sin decir adiós.';
@@ -519,5 +526,6 @@ export const EVENTS = {
       { label: 'Destilar el vodka y el alcohol médico', desc: 'Requiere 10 vodka. Moral −10.', req: (run) => run.res.vodka >= 10, fx: (run, ctx, E) => { E.res({ vodka: -10, fuel: 3 }); E.morale(-10); E.time(240); return 'El Topolev despega oliendo a destilería. La tripulación no lo perdonará.'; } },
     ],
   },
+  ...EVENTS2,
   ...FINALE,
 };

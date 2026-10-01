@@ -203,6 +203,11 @@ export function triggerIncident(run, inc) {
       return;
     case 'pvo':
       if (f.pvo) return;
+      if ((run.flags.iffCodes || 0) > 0) {
+        run.flags.iffCodes--;
+        alert(run, 'La PVO os interroga: los códigos IFF actualizados responden solos.', 'good');
+        return;
+      }
       f.pvo = { deadline: f.t + 5 + (run.ship.power.radar >= 2 ? 2 : 0), active: false, until: 0 };
       f.radioQueue.unshift({ kind: 'iff', need: 8, progress: 0 });
       alert(run, '¡La PVO os ha fijado! Transmitid el código IFF desde la radio.', 'danger', { pause: true, sound: 'alarm' });

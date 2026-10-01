@@ -583,7 +583,7 @@ export class FlightScreen {
     term.text(x + 2, y + 2, 'Calor', C.o3);
     const hc = heat > 85 ? C.red : heat > 65 ? C.gold : C.rad2;
     ui.bar(x + 10, y + 2, 10, heat / 120, { fg: hc, id: 'pw_heat', marks: [65 / 120, 90 / 120] });
-    term.text(x + 21, y + 2, `${Math.round(heat * 4)}°`, hc);
+    term.text(x + 21, y + 2, `${Math.round((heat / 120) * 100)}%`, hc);
     ui.region('pw_heat_tip', x + 2, y + 2, 24, 1, { cursor: 'help', sound: false });
     ui.tip('pw_heat_tip', ['{O}Temperatura del núcleo{/}', 'Sube con la carga del reactor. Por encima de la marca amarilla escapa radiación; por encima de la roja el núcleo se daña.', '{d}Un operador en la consola del reactor refrigera mejor. SCRAM lo apaga de golpe.{/}']);
     if (ui.button('scram', x + w - 9, y + 1, 'SCRAM', { w: 8, danger: true, disabled: run.ship.scram > 0, tip: ['{r}SCRAM{/}: parada de emergencia del reactor.', 'Enfría el núcleo rápidamente pero corta TODA la energía durante 6 minutos.'] })) scram(run);
@@ -1034,7 +1034,7 @@ export class FlightScreen {
       ui.mtext(x + 2, yy++, `Comidas: {l}${run.res.meals}{/} · Raciones: {l}${run.res.rations}{/}`, C.o4, null, w - 4);
       ui.mtext(x + 2, yy++, `{d}La cocina necesita energía y alguien con prioridad en Cocina.{/}`, C.o4, null, w - 4);
     } else if (roomId === 'reactor') {
-      ui.mtext(x + 2, yy++, `Núcleo: {l}${Math.round(run.ship.heat * 4)}°{/}`, C.o4, null, w - 4);
+      ui.mtext(x + 2, yy++, `Calor del núcleo: {l}${Math.round((run.ship.heat / 120) * 100)}%{/}`, C.o4, null, w - 4);
     }
   }
 

@@ -120,7 +120,7 @@ function maintainStations(run, f, ctx) {
     if (ok) {
       const t = ensureTask(run, key, {
         type: 'station', cat: s.cat, room: s.room, station: s.id, label: s.label, x: s.x, y: s.y, slots: 1, persistent: true,
-        weight: s.id === 'piloto' ? 60 : s.id === 'reactor' ? 30 : s.minor ? -40 : s.cat === 'armas' ? (f.combat || f.incoming ? 120 : -20) : 0,
+        weight: s.id === 'piloto' ? 200 : s.id === 'navegante' ? 85 : s.id === 'reactor' ? (run.ship.heat > 70 ? 160 : 60) : s.minor ? -40 : s.cat === 'armas' ? (f.combat || f.incoming ? 120 : -20) : 0,
       });
       if (s.cat === 'armas') t.weight = f.combat || f.incoming ? 140 : -30;
       if (s.id === 'radio') t.data.urgent = f.radioQueue.some((q) => q.kind === 'iff');
@@ -133,7 +133,7 @@ function maintainHazardTasks(run, f) {
   const L = layout();
   for (const room of L.roomList) {
     const rs = run.ship.rooms[room.id];
-    if (rs.fire > 0) ensureTask(run, 'fire:' + room.id, { type: 'fire', cat: 'emergencia', room: room.id, label: `Apagar fuego: ${room.name}`, slots: 3, weight: 150 });
+    if (rs.fire > 0) ensureTask(run, 'fire:' + room.id, { type: 'fire', cat: 'emergencia', room: room.id, label: `Apagar fuego: ${room.name}`, slots: 3, weight: 120 });
     else removeTask(run, 'fire:' + room.id);
     if (rs.breach > 0) ensureTask(run, 'breach:' + room.id, { type: 'breach', cat: 'reparar', room: room.id, label: `Sellar brecha: ${room.name}`, slots: 2, weight: 130 });
     else removeTask(run, 'breach:' + room.id);
