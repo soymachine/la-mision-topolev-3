@@ -103,6 +103,16 @@ export class GameOverScreen {
         ui.mtext(tx, fy++, `{x}✝ ${displayName(c)} — ${c.cause}{/}`, C.o4, null, tw);
       }
     }
+    // crónica de la misión (hitos del registro)
+    const chron = run.log.filter((l) => l.kind === 'party' || /ha muerto|Entrada en la Región|Directiva cumplida|derribado|FUSIÓN/.test(l.text)).slice(-10);
+    let cy2 = py + 6 + n + 1 + (fallen.length ? fallen.length + 2 : 0);
+    if (chron.length && cy2 < py + ph - 8) {
+      term.text(tx, cy2++, 'CRÓNICA', C.o3, null, 1);
+      for (const l of chron) {
+        if (cy2 >= py + ph - 6 - this.result.got.length) break;
+        ui.mtext(tx, cy2++, `{x}${fmtClock(l.t)}{/} ${l.text}`, C.o4, null, tw);
+      }
+    }
     // logros y desbloqueos
     let ly = py + ph - 5 - this.result.got.length - this.result.unlockedNow.length;
     for (const id of this.result.got) ui.mtext(tx, ly++, `{y}★ Logro: ${ACHIEVEMENTS[id].name}{/} {x}— ${ACHIEVEMENTS[id].desc}{/}`, C.o4, null, tw);

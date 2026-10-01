@@ -1,7 +1,7 @@
 // Expediente personal de un tripulante (modal).
 
 import { C } from '../../palette.js';
-import { bigFace, faceState, displayName, fullName, roleName, maxHp, visibleTraits, relationsOf } from '../../game/crew.js';
+import { bigFace, faceState, displayName, fullName, roleName, maxHp, visibleTraits, relationsOf, toCyrillic } from '../../game/crew.js';
 import { SKILLS, TRAITS } from '../../game/data/traits.js';
 import { fmtClock } from '../../game/run.js';
 import { mix, pad } from '../../engine/util.js';
@@ -26,6 +26,7 @@ export function drawDossier(app, run, c, opts = {}) {
   let yy = py + 2;
   const tx = px + 22;
   term.text(tx, yy++, fullName(c).toUpperCase(), C.o7, null, 1);
+  term.text(tx, yy++, toCyrillic(fullName(c)), C.o2);
   ui.mtext(tx, yy++, `{d}${roleName(c)}${c.nick ? ` · alias «${c.nick}»` : ''}{/}`, C.o4);
   ui.mtext(tx, yy++, `${c.age} años · natural de {l}${c.origin}{/}`, C.o4);
   if (c.dead) ui.mtext(tx, yy++, `{r}✝ ${c.cause}${c.diedAt ? ' · ' + fmtClock(c.diedAt) : ''}{/}`, C.o4);

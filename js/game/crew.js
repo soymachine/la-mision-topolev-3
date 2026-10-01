@@ -281,3 +281,34 @@ export function seedRelations(run, rng, c, chance = 0.3) {
   const kind = sameOrigin || rng.chance(0.6) ? 'amigo' : 'rival';
   addRelation(run, c, o, kind);
 }
+
+// Transliteración aproximada (romanización española -> cirílico), solo decorativa
+const TR = [
+  ['shch', 'щ'], ['sch', 'щ'], ['zh', 'ж'], ['ch', 'ч'], ['sh', 'ш'], ['ts', 'ц'], ['kh', 'х'],
+  ['yu', 'ю'], ['ya', 'я'], ['yo', 'ё'], ['ye', 'е'], ['gu', 'г'], ['qu', 'к'],
+  ['a', 'а'], ['b', 'б'], ['v', 'в'], ['g', 'г'], ['d', 'д'], ['e', 'е'], ['z', 'з'], ['i', 'и'], ['y', 'й'],
+  ['k', 'к'], ['l', 'л'], ['m', 'м'], ['n', 'н'], ['o', 'о'], ['p', 'п'], ['r', 'р'], ['s', 'с'], ['t', 'т'],
+  ['u', 'у'], ['f', 'ф'], ['j', 'х'], ['c', 'к'], ['h', 'х'], ['x', 'кс'], ['w', 'в'],
+];
+export function toCyrillic(str) {
+  const plain = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  let out = '';
+  let i = 0;
+  while (i < plain.length) {
+    let hit = false;
+    for (const [lat, cyr] of TR) {
+      if (plain.startsWith(lat, i)) {
+        // «y» final o entre consonantes suena «ы»/«й»
+        out += lat === 'y' && i > 0 && !'aeiou'.includes(plain[i - 1]) ? 'ы' : cyr;
+        i += lat.length;
+        hit = true;
+        break;
+      }
+    }
+    if (!hit) {
+      out += plain[i];
+      i++;
+    }
+  }
+  return out.toUpperCase();
+}
