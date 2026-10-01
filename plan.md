@@ -159,110 +159,110 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
 ### Fase 0 — Preparación
 - [x] 0.1 Analizar requisitos y diseñar el juego
 - [x] 0.2 Escribir `plan.md`
-- [ ] 0.3 Estructura del repo: `index.html`, `.nojekyll`, `css/`, fuente empaquetada, `README.md`
+- [x] 0.3 Estructura del repo: `index.html`, `.nojekyll`, `css/`, fuente empaquetada, `README.md`
 
 ### Fase 1 — Motor ASCII
-- [ ] 1.1 Terminal canvas: rejilla a pantalla completa, HiDPI, redimensionado, tamaño de celda configurable
-- [ ] 1.2 Doble buffer (glifo, color, fondo) y render solo de celdas modificadas
-- [ ] 1.3 Dibujo procedural de caracteres de caja (─│┌┐└┘├┤┬┴┼ ═║╔╗╚╝...) y bloques (█▀▄▌▐░▒▓ y parciales)
-- [ ] 1.4 Capa FX (canvas superior) limpiada cada frame
-- [ ] 1.5 Input: ratón→celda (con fracción), clics, rueda, teclado, detección de arrastre
-- [ ] 1.6 UI inmediata: panel, texto con marcado de color `{o}...{/}`, ajuste de líneas
-- [ ] 1.7 UI: botones con rollover animado, deshabilitados, atajos de teclado
-- [ ] 1.8 UI: barras con bloques parciales y valor animado
-- [ ] 1.9 UI: tooltips enriquecidos, listas con scroll, modales con bloqueo
-- [ ] 1.10 UI: arrastrar y soltar (fantasma suave, destinos que aceptan/rechazan)
-- [ ] 1.11 Partículas ASCII (emisores: chispas, humo, nieve, brasas, explosión, trazadora, texto flotante)
-- [ ] 1.12 FX: tweens/easing, sacudida de pantalla, destellos, efecto CRT (scanlines, viñeta, bloom)
-- [ ] 1.13 Audio sintetizado (clic, hover, alarma, explosión, radio, motor, éxito) + volumen
-- [ ] 1.14 RNG con semilla (estado serializable) + ruido 2D
-- [ ] 1.15 Gestor de pantallas con transiciones (barrido/disolución ASCII)
-- [ ] 1.16 Persistencia: ranuras de guardado, ajustes y meta en localStorage
+- [x] 1.1 Terminal canvas: rejilla a pantalla completa, HiDPI, redimensionado, tamaño de celda configurable
+- [x] 1.2 Doble buffer (glifo, color, fondo) y render solo de celdas modificadas
+- [x] 1.3 Dibujo procedural de caracteres de caja (─│┌┐└┘├┤┬┴┼ ═║╔╗╚╝...) y bloques (█▀▄▌▐░▒▓ y parciales)
+- [x] 1.4 Capa FX (canvas superior) limpiada cada frame
+- [x] 1.5 Input: ratón→celda (con fracción), clics, rueda, teclado, detección de arrastre
+- [x] 1.6 UI inmediata: panel, texto con marcado de color `{o}...{/}`, ajuste de líneas
+- [x] 1.7 UI: botones con rollover animado, deshabilitados, atajos de teclado
+- [x] 1.8 UI: barras con bloques parciales y valor animado
+- [x] 1.9 UI: tooltips enriquecidos, listas con scroll, modales con bloqueo
+- [x] 1.10 UI: arrastrar y soltar (fantasma suave, destinos que aceptan/rechazan)
+- [x] 1.11 Partículas ASCII (emisores: chispas, humo, nieve, brasas, explosión, trazadora, texto flotante)
+- [x] 1.12 FX: tweens/easing, sacudida de pantalla, destellos, efecto CRT (scanlines, viñeta, bloom)
+- [x] 1.13 Audio sintetizado (clic, hover, alarma, explosión, radio, motor, éxito) + volumen
+- [x] 1.14 RNG con semilla (estado serializable) + ruido 2D
+- [x] 1.15 Gestor de pantallas con transiciones (barrido/disolución ASCII)
+- [x] 1.16 Persistencia: ranuras de guardado, ajustes y meta en localStorage
 
 ### Fase 2 — Pantallas base
-- [ ] 2.1 Título: logo ASCII animado, ambiente (nieve/brasas), menú (Continuar, Nueva, Cargar, Instrucciones, Archivo, Ajustes)
-- [ ] 2.2 Instrucciones: secciones navegables con ejemplos ASCII
-- [ ] 2.3 Ajustes: tamaño de letra, volumen, CRT, partículas, velocidad por defecto
-- [ ] 2.4 Nueva partida: dificultad, variante del avión, semilla, ranura
-- [ ] 2.5 Cargar partida: lista de ranuras con resumen
+- [x] 2.1 Título: logo ASCII animado, ambiente (nieve/brasas), menú (Continuar, Nueva, Cargar, Instrucciones, Archivo, Ajustes)
+- [x] 2.2 Instrucciones: secciones navegables con ejemplos ASCII
+- [x] 2.3 Ajustes: tamaño de letra, volumen, CRT, partículas, velocidad por defecto
+- [x] 2.4 Nueva partida: dificultad, variante del avión, semilla, ranura
+- [x] 2.5 Cargar partida: lista de ranuras con resumen
 
 ### Fase 3 — Datos y generación procedural
-- [ ] 3.1 Nombres rusos (nombres, patronímicos, apellidos, apodos), orígenes, topónimos por sílabas
-- [ ] 3.2 Rasgos (≥25) con efectos y visibilidad (oculto/visible)
-- [ ] 3.3 Generador de tripulantes (habilidades por especialidad, rasgos, retrato ASCII procedural)
-- [ ] 3.4 Generador de módulos: tipos, fabricantes (OKB ficticias), calidad, afijos, estadísticas, nombre
-- [ ] 3.5 Precios y rareza
+- [x] 3.1 Nombres rusos (nombres, patronímicos, apellidos, apodos), orígenes, topónimos por sílabas
+- [x] 3.2 Rasgos (≥25) con efectos y visibilidad (oculto/visible)
+- [x] 3.3 Generador de tripulantes (habilidades por especialidad, rasgos, retrato ASCII procedural)
+- [x] 3.4 Generador de módulos: tipos, fabricantes (OKB ficticias), calidad, afijos, estadísticas, nombre
+- [x] 3.5 Precios y rareza
 
 ### Fase 4 — La nave
-- [ ] 4.1 Plantilla ASCII del Topolev → salas, suelos, escaleras, puertas, estaciones, ranuras
-- [ ] 4.2 Estado por sala (temp, presión, fuego, brecha, radiación, integridad, luz)
-- [ ] 4.3 Render del corte transversal con estados animados
-- [ ] 4.4 Pathfinding (BFS sobre suelo + escaleras) y movimiento suave de tripulantes
-- [ ] 4.5 Módulos instalados → estadísticas de la nave (empuje, consumo, energía, blindaje...)
-- [ ] 4.6 Variantes del avión (Topolev, Bogatyr, Rassvet)
+- [x] 4.1 Plantilla ASCII del Topolev → salas, suelos, escaleras, puertas, estaciones, ranuras
+- [x] 4.2 Estado por sala (temp, presión, fuego, brecha, radiación, integridad, luz)
+- [x] 4.3 Render del corte transversal con estados animados
+- [x] 4.4 Pathfinding (BFS sobre suelo + escaleras) y movimiento suave de tripulantes
+- [x] 4.5 Módulos instalados → estadísticas de la nave (empuje, consumo, energía, blindaje...)
+- [x] 4.6 Variantes del avión (Topolev, Bogatyr, Rassvet)
 
 ### Fase 5 — Tareas y tripulación (micro-gestión)
-- [ ] 5.1 Modelo de tareas: estaciones persistentes, tareas de incidente, órdenes de taller/política
-- [ ] 5.2 Matriz de prioridades (tripulante × categoría, 0–3)
-- [ ] 5.3 Asignación automática (prioridad, urgencia, habilidad, distancia, inercia)
-- [ ] 5.4 Órdenes directas: arrastrar tripulante a sala/estación/tarea; cancelar
-- [ ] 5.5 Necesidades y su evolución (salud, fatiga, hambre, frío, moral, radiación, embriaguez)
-- [ ] 5.6 Acciones autónomas (dormir, comer, calentarse, curarse, beber) y política de turnos
-- [ ] 5.7 Crisis nerviosas (beber, negarse, pánico, pelea) y efectos de rasgos
-- [ ] 5.8 Ritmo de trabajo (habilidad, fatiga, moral, frío, rasgos, embriaguez)
+- [x] 5.1 Modelo de tareas: estaciones persistentes, tareas de incidente, órdenes de taller/política
+- [x] 5.2 Matriz de prioridades (tripulante × categoría, 0–3)
+- [x] 5.3 Asignación automática (prioridad, urgencia, habilidad, distancia, inercia)
+- [x] 5.4 Órdenes directas: arrastrar tripulante a sala/estación/tarea; cancelar
+- [x] 5.5 Necesidades y su evolución (salud, fatiga, hambre, frío, moral, radiación, embriaguez)
+- [x] 5.6 Acciones autónomas (dormir, comer, calentarse, curarse, beber) y política de turnos
+- [x] 5.7 Crisis nerviosas (beber, negarse, pánico, pelea) y efectos de rasgos
+- [x] 5.8 Ritmo de trabajo (habilidad, fatiga, moral, frío, rasgos, embriaguez)
 
 ### Fase 6 — Simulación de vuelo
-- [ ] 6.1 Reloj de juego, pausa (Espacio) y velocidades ×1 ×2 ×4
-- [ ] 6.2 Motores: régimen, empuje, consumo, desgaste, hielo; progreso del tramo
-- [ ] 6.3 Reactor: calor, energía disponible, radiación, SCRAM
-- [ ] 6.4 Distribución de energía (pips clicables por sistema)
-- [ ] 6.5 Riesgos por sala: fuego (propagación), brechas, temperatura, presión, radiación
-- [ ] 6.6 Cocina (raciones→comidas), comedor, enfermería (curar), taller (órdenes de fabricación)
-- [ ] 6.7 Pantalla de vuelo completa: barra superior, plantilla, nave, tareas, energía, radar, registro
-- [ ] 6.8 Llegada / aterrizaje forzoso (sin combustible) / destrucción
+- [x] 6.1 Reloj de juego, pausa (Espacio) y velocidades ×1 ×2 ×4
+- [x] 6.2 Motores: régimen, empuje, consumo, desgaste, hielo; progreso del tramo
+- [x] 6.3 Reactor: calor, energía disponible, radiación, SCRAM
+- [x] 6.4 Distribución de energía (pips clicables por sistema)
+- [x] 6.5 Riesgos por sala: fuego (propagación), brechas, temperatura, presión, radiación
+- [x] 6.6 Cocina (raciones→comidas), comedor, enfermería (curar), taller (órdenes de fabricación)
+- [x] 6.7 Pantalla de vuelo completa: barra superior, plantilla, nave, tareas, energía, radar, registro
+- [x] 6.8 Llegada / aterrizaje forzoso (sin combustible) / destrucción
 
 ### Fase 7 — Incidentes y combate
-- [ ] 7.1 Director de incidentes (programación del tramo + fallos por fiabilidad)
-- [ ] 7.2 Catálogo de incidentes (≥15)
-- [ ] 7.3 Combate: contactos, radar ASCII con barrido, torretas, objetivo, maniobra evasiva, señuelos
-- [ ] 7.4 PVO: transmitir código IFF contrarreloj
-- [ ] 7.5 Efectos: impactos, explosiones, trazadoras, sacudidas, alarmas
+- [x] 7.1 Director de incidentes (programación del tramo + fallos por fiabilidad)
+- [x] 7.2 Catálogo de incidentes (≥15)
+- [x] 7.3 Combate: contactos, radar ASCII con barrido, torretas, objetivo, maniobra evasiva, señuelos
+- [x] 7.4 PVO: transmitir código IFF contrarreloj
+- [x] 7.5 Efectos: impactos, explosiones, trazadoras, sacudidas, alarmas
 
 ### Fase 8 — Mapa procedural
-- [ ] 8.1 Terreno por región (ruido + perfil regional, ríos, lagos, Transiberiano, ciudades)
-- [ ] 8.2 Grafo de nodos por columnas sin cruces + nombres procedurales
-- [ ] 8.3 Tipos de nodo con pesos por región; nodo inicial, frontera y epicentro
-- [ ] 8.4 Frentes meteorológicos móviles
-- [ ] 8.5 Pantalla de mapa: hover, ruta animada, información del tramo, leyenda
-- [ ] 8.6 Reconocimiento (radar/navegante revelan tipos de nodo)
+- [x] 8.1 Terreno por región (ruido + perfil regional, ríos, lagos, Transiberiano, ciudades)
+- [x] 8.2 Grafo de nodos por columnas sin cruces + nombres procedurales
+- [x] 8.3 Tipos de nodo con pesos por región; nodo inicial, frontera y epicentro
+- [x] 8.4 Frentes meteorológicos móviles
+- [x] 8.5 Pantalla de mapa: hover, ruta animada, información del tramo, leyenda
+- [x] 8.6 Reconocimiento (radar/navegante revelan tipos de nodo)
 
 ### Fase 9 — Eventos y nodos
-- [ ] 9.1 Motor de eventos: condiciones, plantillas de texto, opciones con requisitos, tiradas, resultados
+- [x] 9.1 Motor de eventos: condiciones, plantillas de texto, opciones con requisitos, tiradas, resultados
 - [ ] 9.2 Catálogo de eventos (≥40) por tipo de nodo y región
-- [ ] 9.3 Pantalla de evento (texto con efecto máquina de escribir, opciones con probabilidad)
-- [ ] 9.4 Aeródromo: comerciar, reparar, repostar, reclutar, vender módulos
-- [ ] 9.5 Paso del tiempo en nodos (descanso, consumo agregado)
+- [x] 9.3 Pantalla de evento (texto con efecto máquina de escribir, opciones con probabilidad)
+- [x] 9.4 Aeródromo: comerciar, reparar, repostar, reclutar, vender módulos
+- [x] 9.5 Paso del tiempo en nodos (descanso, consumo agregado)
 
 ### Fase 10 — Hangar y gestión
-- [ ] 10.1 Hangar: ranuras de módulos por sala con arrastrar y soltar (estilo Cogmind)
-- [ ] 10.2 Bodega/inventario de módulos y comparación en tooltip
-- [ ] 10.3 Expediente de tripulante (retrato, habilidades, rasgos, historial)
-- [ ] 10.4 Matriz de prioridades editable (pantalla de tripulación)
-- [ ] 10.5 Desmontar módulos para piezas / reparar en taller
+- [x] 10.1 Hangar: ranuras de módulos por sala con arrastrar y soltar (estilo Cogmind)
+- [x] 10.2 Bodega/inventario de módulos y comparación en tooltip
+- [x] 10.3 Expediente de tripulante (retrato, habilidades, rasgos, historial)
+- [x] 10.4 Matriz de prioridades editable (pantalla de tripulación)
+- [x] 10.5 Desmontar módulos para piezas / reparar en taller
 
 ### Fase 11 — Partido, directivas y final
-- [ ] 11.1 Sospecha (fuentes y sumideros), comisario, informante, saboteador, investigación
-- [ ] 11.2 Directivas de Moscú (generación, seguimiento, recompensa/penalización)
-- [ ] 11.3 Plazo en días y consecuencias
+- [x] 11.1 Sospecha (fuentes y sumideros), comisario, informante, saboteador, investigación
+- [x] 11.2 Directivas de Moscú (generación, seguimiento, recompensa/penalización)
+- [x] 11.3 Plazo en días y consecuencias
 - [ ] 11.4 Región V y nodo Epicentro: vuelo final «La Señal»
-- [ ] 11.5 Decisión final y finales múltiples
-- [ ] 11.6 Pantalla de fin (derrota/victoria) con puntuación y resumen
+- [x] 11.5 Decisión final y finales múltiples
+- [x] 11.6 Pantalla de fin (derrota/victoria) con puntuación y resumen
 
 ### Fase 12 — Meta y rejugabilidad
-- [ ] 12.1 Archivo de expedientes (historial de partidas)
-- [ ] 12.2 Desbloqueos (variantes del avión) y logros
-- [ ] 12.3 Dificultades con modificadores
-- [ ] 12.4 Semillas compartibles
+- [x] 12.1 Archivo de expedientes (historial de partidas)
+- [x] 12.2 Desbloqueos (variantes del avión) y logros
+- [x] 12.3 Dificultades con modificadores
+- [x] 12.4 Semillas compartibles
 
 ### Fase 13 — Pulido y pruebas
 - [ ] 13.1 Test de simulación en Node (partidas automáticas sin errores)

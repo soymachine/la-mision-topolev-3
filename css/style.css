@@ -1,0 +1,70 @@
+@font-face {
+  font-family: 'TopoMono';
+  src: url('../assets/fonts/DejaVuSansMono.woff2') format('woff2');
+  font-weight: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'TopoMono';
+  src: url('../assets/fonts/DejaVuSansMono-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-display: block;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  will-change: transform;
+}
+#stage canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+#glow {
+  pointer-events: none;
+  filter: blur(7px) brightness(1.15);
+  mix-blend-mode: screen;
+  opacity: 0.45;
+}
+#glow.off { display: none; }
+#fx { pointer-events: none; }
+#crt {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.16) 3px, rgba(0,0,0,0) 4px),
+    radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+  animation: flicker 6s infinite steps(1);
+}
+#crt.off { display: none; }
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  47% { opacity: 0.94; }
+  48% { opacity: 1; }
+  83% { opacity: 0.97; }
+}
+#boot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e07a14;
+  font-family: TopoMono, monospace;
+  font-size: 16px;
+  background: #000;
+  transition: opacity 0.6s;
+}
+#boot.hide { opacity: 0; pointer-events: none; }
