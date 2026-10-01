@@ -107,6 +107,12 @@ async function boot() {
   registerScreens(app.screens);
   app.applySettings();
 
+  // pausar el vuelo si la ventana pierde el foco
+  window.addEventListener('blur', () => app.screens.cur && app.screens.cur.onBlur && app.screens.cur.onBlur());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && app.screens.cur && app.screens.cur.onBlur) app.screens.cur.onBlur();
+  });
+
   window.addEventListener('resize', () => {
     term.resize();
     input.refresh();

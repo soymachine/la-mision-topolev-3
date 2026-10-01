@@ -60,6 +60,10 @@ export class FlightScreen {
     return this.app.run;
   }
 
+  onBlur() {
+    this.paused = true;
+  }
+
   enter() {
     this.app.audio.loop('engine', true, 1);
     this.app.audio.loop('wind', true, 0.5);
