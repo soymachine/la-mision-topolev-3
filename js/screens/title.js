@@ -6,12 +6,15 @@ import { drawBig, drawBigHalf, bigWidth } from '../engine/bigfont.js';
 import { Storage, SLOTS } from '../engine/storage.js';
 
 const PLANE = [
-  '              ._',
-  '              | \\_',
-  '              |   \\____________________________________________',
-  '   ___________|_____\\__o__o__o__o__o__o__o__o__o__o__o__o__o__\\___',
-  '  <_____☭___T-0___________________________________________________ \\>',
-  '         \\__[=====]__/         \\__[=====]__/          `--´',
+  '                ▗▄▖',
+  '               ▐███▙▖',
+  '               ▐█☭███▙▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▖',
+  '      ▗▄▄▄▄▄▄▄▄████████████████████████████████████████████████████▙▄▄▖',
+  ' ◄══▐██████████▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪█▪███████▓▓▙▄',
+  '      ▝▀▀▀▀▀▀▀▜████████████████████████████████████████████████████████▛▘',
+  '               ▝▀▀▀▀▀▀▀▀▀██▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀██▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▘',
+  '                     ≡████████◗              ≡████████◗',
+  '                      ▀▀▀▀▀▀▀▀                ▀▀▀▀▀▀▀▀',
 ];
 
 function hash(n) {
@@ -49,19 +52,20 @@ export class TitleScreen {
     }
     // estela del avión
     const p = this.planePos();
-    if (Math.random() < dt * 30) {
-      particles.smoke(p.x + 2, p.y + 4.5, 1, { wind: -3, alpha: 0.35, c0: C.o3, c1: C.o0 });
+    if (Math.random() < dt * 24) {
+      particles.smoke(p.x + 21, p.y + 7.5, 1, { wind: -4, alpha: 0.3, c0: C.o3, c1: C.o0 });
+      particles.smoke(p.x + 46, p.y + 7.5, 1, { wind: -4, alpha: 0.3, c0: C.o3, c1: C.o0 });
     }
-    if (Math.random() < dt * 14) {
-      particles.add({ x: p.x + 13 + Math.random() * 7, y: p.y + 6, vx: -6, vy: 0.3, life: 1.2, g: '~', c0: C.o3, c1: C.o0, alpha: 0.6 });
-      particles.add({ x: p.x + 33 + Math.random() * 7, y: p.y + 6, vx: -6, vy: 0.3, life: 1.2, g: '~', c0: C.o3, c1: C.o0, alpha: 0.6 });
+    if (Math.random() < dt * 20) {
+      particles.add({ x: p.x + 20, y: p.y + 7.5, vx: -9, vy: 0.2, life: 0.8, g: '-', c0: C.gold, c1: C.red2, alpha: 0.7 });
+      particles.add({ x: p.x + 45, y: p.y + 7.5, vx: -9, vy: 0.2, life: 0.8, g: '-', c0: C.gold, c1: C.red2, alpha: 0.7 });
     }
   }
 
   planePos() {
     const { term } = this.app;
-    const span = term.cols + 90;
-    const x = ((this.t * 5 + term.cols * 0.25) % span) - 75;
+    const span = term.cols + 95;
+    const x = ((this.t * 5 + term.cols * 0.25) % span) - 80;
     const y = this.layout().planeY + Math.sin(this.t * 0.8) * 0.4;
     return { x, y };
   }
@@ -75,8 +79,8 @@ export class TitleScreen {
       laY: compact ? 3 : 4,
       topoY: compact ? 8 : 10,
       subY: compact ? 15 : 18,
-      planeY: compact ? 17 : 21,
-      menuY: compact ? 25 : 30,
+      planeY: compact ? 16 : 20,
+      menuY: compact ? 27 : 31,
       gap: rows < 46 ? 1 : 2,
     };
   }
@@ -140,16 +144,17 @@ export class TitleScreen {
       for (let i = 0; i < row.length; i++) {
         const ch = row[i];
         if (ch === ' ') continue;
-        let fg = C.o4;
-        if (ch === 'o') fg = Math.sin(t * 6 + i) > 0.7 ? C.gold : C.o6;
+        let fg = j <= 2 ? C.o3 : j <= 5 ? C.o2 : C.o1;
+        if (ch === '▪') fg = Math.sin(t * 5 + i * 0.7) > 0.6 ? C.gold : C.o6;
+        else if (ch === '▓') fg = C.ice2;
         else if (ch === '☭') fg = C.red;
-        else if (j === 5) fg = C.o3;
+        else if (ch === '≡' || ch === '◗' || ch === '◄' || ch === '═') fg = C.o3;
         term.put(px + i, py + j, ch, fg);
       }
     }
     // luces de navegación
-    if (Math.floor(t * 2) % 2 === 0) term.put(px + 69, py + 4, '•', C.red);
-    else term.put(px + 15, py, '•', C.rad);
+    if (Math.floor(t * 2) % 2 === 0) term.put(px + 72, py + 4, '•', C.red);
+    else term.put(px + 17, py, '•', C.rad);
 
     // Taiga en paralaje
     const gY = rows - 4;

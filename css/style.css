@@ -33,9 +33,9 @@ html, body {
 }
 #glow {
   pointer-events: none;
-  filter: blur(7px) brightness(1.15);
   mix-blend-mode: screen;
-  opacity: 0.45;
+  opacity: 0.55;
+  image-rendering: auto;
 }
 #glow.off { display: none; }
 #fx { pointer-events: none; }

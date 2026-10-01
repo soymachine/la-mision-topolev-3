@@ -98,8 +98,8 @@ export class Term {
       c.style.height = H + 'px';
     }
     if (this.glow) {
-      this.glow.width = Math.max(1, Math.floor((W * dpr) / 3));
-      this.glow.height = Math.max(1, Math.floor((H * dpr) / 3));
+      this.glow.width = Math.max(1, Math.floor(W / 7));
+      this.glow.height = Math.max(1, Math.floor(H / 7));
       this.glow.style.width = W + 'px';
       this.glow.style.height = H + 'px';
     }
@@ -456,12 +456,15 @@ export class Term {
     if (this.drawOverlay) this.drawOverlay(ctx);
     // Bloom: copia reducida de ambas capas (se difumina por CSS)
     if (this.gctx && this.glowOn) {
-      if (++this.glowTimer % 2 === 0) {
+      if (++this.glowTimer % 3 === 0) {
         const g = this.gctx;
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'low';
         g.globalCompositeOperation = 'copy';
         g.drawImage(this.base, 0, 0, this.glow.width, this.glow.height);
-        g.globalCompositeOperation = 'source-over';
+        g.globalCompositeOperation = 'lighter';
         g.drawImage(this.fx, 0, 0, this.glow.width, this.glow.height);
+        g.globalCompositeOperation = 'source-over';
       }
     }
   }
