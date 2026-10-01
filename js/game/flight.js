@@ -39,6 +39,7 @@ export function createFlight(run, toId, opts = {}) {
     pvo: null, incoming: null, leak: 0, rats: 0, anomaly: 0,
     nextId: 1, acc: 0, assignAcc: 0, autosaveAcc: 0,
     stats: st, ctx: null, speedKmh: 0, fuelRate: 0, arrived: false, crashed: false,
+    start: { fuel: run.res.fuel, hull: null, clock: run.clock, fires: run.stats.fires, kills: run.stats.kills, deaths: run.stats.deaths, ammo: run.res.ammo, parts: run.res.parts },
   };
   run.flight = f;
   // calor inicial y tripulación
@@ -53,6 +54,7 @@ export function createFlight(run, toId, opts = {}) {
     rs.temp = 14;
   }
   placeCrew(run);
+  f.start.hull = hull(run);
   planLeg(run, f);
   log(run, `Despegue hacia ${to.name} (${dist} km).`, 'info');
   return f;
@@ -463,6 +465,14 @@ function tick(run, f, dt) {
 }
 
 function land(run, f) {
+  // resumen del tramo para la pantalla de llegada
+  const S = f.start || {};
+  run.lastLeg = {
+    km: Math.round(f.done), min: Math.round(run.clock - (S.clock ?? run.clock)),
+    fuel: +(S.fuel - run.res.fuel).toFixed(1), hull: Math.round((S.hull ?? hull(run)) - hull(run)),
+    fires: run.stats.fires - (S.fires || 0), kills: run.stats.kills - (S.kills || 0), deaths: run.stats.deaths - (S.deaths || 0),
+    ammo: Math.max(0, Math.round((S.ammo ?? run.res.ammo) - run.res.ammo)), parts: Math.max(0, Math.round((S.parts ?? run.res.parts) - run.res.parts)),
+  };
   // en tierra: se apagan los fuegos y se funde el hielo
   for (const id in run.ship.rooms) {
     const rs = run.ship.rooms[id];

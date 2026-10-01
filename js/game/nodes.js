@@ -76,6 +76,29 @@ export function arrive(run) {
   run.forced = !!(f && f.forced);
   run.flight = null;
   passTime(run, 40);
+  const L = run.lastLeg;
+  if (L) {
+    const parts = [`{d}Tramo: ${L.km} km en ${Math.floor(L.min / 60)}h ${String(L.min % 60).padStart(2, '0')}m · −${L.fuel} t{/}`];
+    const extra = [];
+    if (L.fires) extra.push(`${L.fires} incendio${L.fires > 1 ? 's' : ''}`);
+    if (L.kills) extra.push(`${L.kills} derribo${L.kills > 1 ? 's' : ''}`);
+    if (L.hull > 0) extra.push(`casco −${L.hull}%`);
+    if (L.ammo) extra.push(`−${L.ammo} munición`);
+    if (L.parts) extra.push(`−${L.parts} piezas`);
+    if (L.deaths) extra.push(`{r}${L.deaths} baja${L.deaths > 1 ? 's' : ''}{/}`);
+    if (extra.length) parts.push(`{d}${extra.join(' · ')}{/}`);
+    msgs.push(...parts);
+    run.lastLeg = null;
+  }
+  // revelaciones espontáneas
+  for (const c of alive(run)) {
+    if (has(c, 'oyente') && !c.revealed.oyente && run.region >= 3 && rng(run).chance(0.35)) {
+      c.revealed.oyente = true;
+      run.pendingReveal = run.pendingReveal || [];
+      run.pendingReveal.push({ crew: c.id, trait: 'oyente' });
+      msgs.push(`{v}${displayName(c)} lleva horas mirando a la nada, murmurando al ritmo de la Señal.{/}`);
+    }
+  }
   msgs.push(...onArrive(run, node));
   // bocazas en sitios con oídos
   if ((node.type === 'ciudad' || node.type === 'aerodromo' || node.type === 'militar') && alive(run).some((c) => has(c, 'bocazas'))) {

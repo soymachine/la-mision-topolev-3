@@ -146,6 +146,29 @@ Al aterrizar ocurre algo. Lee y decide.
 · {l}Conocimiento{/} ({v}Ψ{/}): lo que sabéis sobre la Señal. Será importante al final del viaje.
 
 {d}Servicios{/}: aeródromos, ciudades, bases y fronteras permiten comerciar, reparar, curar y reclutar a cambio de rublos.`],
+  ['Símbolos', `{O}GLOSARIO DE SÍMBOLOS{/}
+
+{d}En la nave{/}
+  {w}A B K…{/}   tripulantes (inicial del apellido)
+  {y}▾{/}        tripulante con orden directa
+  {d}·{/}        puesto libre (estación sin ocupar)
+  {o}H{/}        escalera        {d}¦{/} puerta abierta   {l}█{/} puerta cerrada
+  {d}╫{/}        escotilla       {l}▬{/} escotilla cerrada
+  {r}▲{/}        fuego           {i}◌{/} brecha          {i}○{/} poco oxígeno
+  {g}☢{/}        radiación       {i}*{/} sala bajo cero   {i}❄{/} hielo
+  {y}╳{/}        estructura dañada
+  {r}!{/} {i}◌{/} {r}+{/} {y}¤{/}  marcadores de tarea (fuego, brecha, herido, reparación)
+
+{d}En el radar{/}
+  {r}> » W m < ◉ o{/}   cazas, bombarderos, contrabandistas, esferas, globos
+  {y}[ ]{/}             objetivo prioritario
+
+{d}En las tarjetas{/}
+  ♥ salud  ☾ fatiga  ♨ hambre  ☺ moral
+  {i}❄{/} frío  {g}☢{/} radiación  {i}¡{/} borracho  {r}¤{/} fiebre
+
+{d}Energía{/}
+  {o}■{/} con energía   {r}▣{/} pedida pero sin energía   □ libre`],
   ['Atajos', `{O}ATAJOS DE TECLADO{/}
 
   {l}Espacio{/}        Pausa / continuar (vuelo) · saltar texto

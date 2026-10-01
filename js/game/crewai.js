@@ -194,7 +194,15 @@ export function updateNeeds(run, c, dt, ctx) {
   if (rs && rs.rad > 0) c.rad = Math.min(100, c.rad + rs.rad * 0.006 * dt);
   if (c.rad > 50) injure(run, c, (c.rad - 50) * 0.002 * dt, 'radiación');
   // enfermedad oculta
-  if (has(c, 'tisis') && c.flags?.treated !== true) injure(run, c, 0.004 * dt, 'tisis');
+  if (has(c, 'tisis') && c.flags?.treated !== true) {
+    injure(run, c, 0.004 * dt, 'tisis');
+    if (!c.revealed.tisis && c.hp < 65) {
+      c.revealed.tisis = true;
+      run.pendingReveal = run.pendingReveal || [];
+      run.pendingReveal.push({ crew: c.id, trait: 'tisis' });
+      alert(run, `${displayName(c)} tose sangre en un pañuelo.`, 'warn');
+    }
+  }
   if (c.sick > 0) {
     c.sick = Math.max(0, c.sick - 0.01 * dt);
     injure(run, c, 0.03 * dt, 'fiebre');

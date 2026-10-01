@@ -85,7 +85,11 @@ export class NewGameScreen {
     term.text(px, y, 'SEMILLA DEL MUNDO', C.o3, null, 1);
     this.seed = ui.textInput('seed', px + 20, y, 24, this.seed, { max: 20, upper: true, filter: /[A-Za-z0-9-]/ });
     if (ui.button('reroll', px + 46, y, '⟳ Otra', { w: 10, tip: 'Semilla aleatoria' })) this.seed = randomSeed();
-    ui.mtext(px + 58, y, '{x}La misma semilla genera el mismo mundo. Compártela.{/}', C.o3, null, pw - 58);
+    if (ui.button('daily', px + 57, y, '☼ Del día', { w: 12, tip: 'La misma misión para todo el mundo hoy' })) {
+      const d = new Date();
+      this.seed = `DIA-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    }
+    ui.mtext(px + 71, y, '{x}La misma semilla genera el mismo mundo. Compártela.{/}', C.o3, null, pw - 71);
     y += 3;
     // ranura
     term.text(px, y, 'EXPEDIENTE (RANURA)', C.o3, null, 1);

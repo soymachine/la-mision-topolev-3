@@ -424,11 +424,12 @@ export class MapScreen {
     const W = term.cols;
     const H = term.rows;
     const pw = 34;
-    const ph = 11;
+    const ph = 13;
     const px = Math.floor((W - pw) / 2);
     const py = Math.floor((H - ph) / 2);
     ui.beginModal(0.7);
     ui.panel(px, py, pw, ph, { title: 'MENÚ', style: 'double', shadow: true });
+    ui.mtext(px + 3, py + ph - 2, `{x}Semilla: {l}${this.run.seed}{/}`, C.o4, null, pw - 6);
     let yy = py + 2;
     if (ui.button('mm_cont', px + 3, yy, 'Continuar', { w: pw - 6, key: 'Escape' })) this.menu = false;
     yy += 2;
