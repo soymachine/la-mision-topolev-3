@@ -284,9 +284,12 @@ tests/                · pruebas de simulación (Node) y visuales (Playwright)
   equilibrio inicial (partidas automáticas: `node tests/fullrun.mjs 10 estajanovista`).
 
 ## 5. Ideas pendientes / mejoras futuras (no bloquean)
-- [ ] Más incidentes de vuelo (intoxicación, fuga del refrigerante, impacto de aves).
-- [ ] Puertas que se puedan cerrar para frenar humo/fuego.
-- [ ] Relaciones entre tripulantes (amistades/rivalidades).
+- [x] Más incidentes de vuelo (intoxicación, fuga del refrigerante, impacto de aves, corrientes en chorro).
+- [x] Puertas y escotillas que se pueden cerrar (fuego, humo, aire, radiación).
+- [x] Relaciones entre tripulantes (amistades/rivalidades).
 - [ ] Más variantes de distribución de la nave.
-- [ ] Música generativa de fondo.
+- [x] Música generativa de fondo.
+- [x] Condiciones de misión aleatorias (invierno, purga, escasez...) y maestrías de habilidad (nivel 8).
+- [x] Despresurizar salas, sobrecarga del reactor, baterías de emergencia, ciclo día/noche.
+- [x] Prueba del mono (`node tests/monkey.mjs 120`) y partidas automáticas completas.
 - [ ] Soporte táctil completo para móviles.

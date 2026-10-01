@@ -163,7 +163,7 @@ function nodeName(rng, type, regionIdx) {
   }
 }
 
-export function genRegionMap(seed, regionIdx, rng) {
+export function genRegionMap(seed, regionIdx, rng, opts = {}) {
   const R = REGIONS[regionIdx];
   const T = terrain(seed, regionIdx);
   const nodes = [];
@@ -244,7 +244,7 @@ export function genRegionMap(seed, regionIdx, rng) {
   }
   // tormentas
   const storms = [];
-  const ns = rng.int(R.storms[0], R.storms[1]);
+  const ns = rng.int(R.storms[0], R.storms[1]) + (opts.extraStorms || 0);
   for (let s = 0; s < ns; s++) {
     storms.push({
       x: rng.float(20, MAP_W - 10),

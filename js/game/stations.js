@@ -7,6 +7,7 @@ import { emit, alert } from './fcore.js';
 import { handleMessage, onReport } from './directives.js';
 import { scrapValue } from './loot.js';
 import { clamp } from '../engine/util.js';
+import { isMaster } from './data/modifiers.js';
 
 export const RECIPES = {
   municion: { name: 'Munición', desc: '3 piezas → 40 de munición', cost: { parts: 3 }, out: { ammo: 40 }, need: 18 },
@@ -77,7 +78,7 @@ export function resolveRadio(run, c, rate, dt, ctx) {
   const q = f.radioQueue;
   if (q.length) {
     const it = q[0];
-    it.progress += rate * ctx.stats.decode * (pw >= 2 ? 1.4 : 1) * (it.kind === 'iff' ? 1 + ctx.stats.iff : 1) * dt;
+    it.progress += rate * ctx.stats.decode * (pw >= 2 ? 1.4 : 1) * (it.kind === 'iff' ? 1 + ctx.stats.iff : 1) * (isMaster(c, 'rad') ? 1.5 : 1) * dt;
     if (Math.random() < dt * 2) emit(run, { kind: 'radio', station: 'radio' });
     if (it.progress >= it.need) {
       q.shift();
@@ -104,6 +105,7 @@ export function scienceGain(run, c, rate, dt, ctx) {
   if ((run.ship.power.radio || 0) <= 0) g *= 0.5;
   if (f.anomaly) g *= 2.5;
   if (has(c, 'oyente') && run.region >= 3) g *= 1.8;
+  if (isMaster(c, 'cie')) g *= 1.5;
   f.sciAcc = (f.sciAcc || 0) + g * dt;
   if (f.sciAcc >= 1) {
     f.sciAcc -= 1;
@@ -124,7 +126,7 @@ export function polWork(run, c, rate, dt, ctx) {
   f.polAcc = (f.polAcc || 0) + rate * dt * (has(c, 'leal') ? 1.2 : 1);
   if (focus === 'informe' && f.polAcc >= 48) {
     f.polAcc = 0;
-    addSuspicion(run, -1.5);
+    addSuspicion(run, isMaster(c, 'pol') ? -3 : -1.5);
     run.stats.reports = (run.stats.reports || 0) + 1;
     onReport(run);
     emit(run, { kind: 'stamp', x: c.x, y: c.y });

@@ -123,7 +123,7 @@ export function nextRegion(run) {
   const msgs = closeRegion(run);
   run.region++;
   run.stats.maxRegion = Math.max(run.stats.maxRegion, run.region);
-  run.map = genRegionMap(run.seed, run.region, new RNG(hashString(run.seed + ':region:' + run.region)));
+  run.map = genRegionMap(run.seed, run.region, new RNG(hashString(run.seed + ':region:' + run.region)), { extraStorms: run.mods && run.mods.includes('tormentas') ? 1 : 0 });
   run.map.nodes[0].visited = true;
   reveal(run.map, shipStats(run.ship).range);
   log(run, `Entrada en la Región ${REGIONS[run.region].roman}: ${REGIONS[run.region].name}.`, 'party');
@@ -172,7 +172,8 @@ export function market(run, node) {
   const infl = 1 + run.region * 0.12;
   for (const k of Object.keys(BASE_PRICE)) {
     const mod = (MARKET_MOD[type] || {})[k] || 1;
-    prices[k] = Math.max(1, BASE_PRICE[k] * mod * infl * r.float(0.85, 1.15));
+    const scarce = run.mods && run.mods.includes('escasez') && (k === 'fuel' || k === 'rations') ? 1.35 : 1;
+    prices[k] = Math.max(1, BASE_PRICE[k] * mod * infl * scarce * r.float(0.85, 1.15));
     stock[k] = sells.includes(k) ? Math.round((k === 'ammo' ? 200 : k === 'fuel' ? r.int(14, 30) : k === 'rations' ? r.int(20, 50) : r.int(4, 16)) * (type === 'aerodromo' ? 1.2 : 1)) : 0;
   }
   const modules = [];

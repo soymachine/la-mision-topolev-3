@@ -6,6 +6,7 @@ import { resetModIds } from './loot.js';
 import { initialModules, initialRooms, shipStats, capacities, VARIANTS } from './ship.js';
 import { genRegionMap, reveal } from './map.js';
 import { clamp } from '../engine/util.js';
+import { MODIFIERS } from './data/modifiers.js';
 
 export const RUN_VERSION = 3;
 
@@ -125,6 +126,39 @@ export function newRun({ seed, difficulty = 'estajanovista', variant = 'topolev'
     c.joined = 0;
     run.crew.push(c);
   }
+  // condiciones de la misión
+  run.mods = [];
+  const keys = Object.keys(MODIFIERS);
+  const pickMod = (filter) => {
+    const opts = keys.filter((k) => !run.mods.includes(k) && filter(MODIFIERS[k]));
+    if (opts.length) run.mods.push(r.pick(opts));
+  };
+  if (difficulty === 'camarada') {
+    if (r.chance(0.6)) pickMod((m) => m.kind !== 'neg');
+  } else if (difficulty === 'estajanovista') pickMod(() => true);
+  else {
+    pickMod((m) => m.kind === 'neg');
+    pickMod(() => true);
+  }
+  if (run.mods.includes('veteranos')) {
+    for (const c of run.crew) {
+      const R2 = c.role;
+      const main = { piloto: 'pil', navegante: 'nav', ingeniero: 'ing', radio: 'rad', medico: 'med', comisario: 'pol', artillero: 'art', cientifico: 'cie' }[R2];
+      if (main) c.skills[main] = Math.min(10, c.skills[main] + 1);
+    }
+  }
+  if (run.mods.includes('revisado')) {
+    for (const m of Object.values(run.ship.slots)) {
+      if (!m) continue;
+      m.maxInt += 20;
+      m.int = m.maxInt;
+      m.rel = Math.min(0.99, m.rel + 0.04);
+    }
+  }
+  if (run.mods.includes('presupuesto')) {
+    run.res.rubles += 250;
+    run.suspicion += 8;
+  }
   // relaciones de partida
   run.rel = [];
   for (const c of run.crew) seedRelations(run, r, c, 0.35);
@@ -145,7 +179,7 @@ export function newRun({ seed, difficulty = 'estajanovista', variant = 'topolev'
     c.pri.cocina = 1;
   }
   // mapa de la región I
-  run.map = genRegionMap(seed, 0, new RNG(hashString(seed + ':region:0')));
+  run.map = genRegionMap(seed, 0, new RNG(hashString(seed + ':region:0')), { extraStorms: run.mods.includes('tormentas') ? 1 : 0 });
   run.map.nodes[0].visited = true;
   reveal(run.map, shipStats(run.ship).range);
   log(run, 'El Comité Central activa la Misión Topolev.', 'party');
@@ -182,6 +216,7 @@ export function caps(run) {
 export function addRes(run, key, amount, capOverride) {
   const cap = capOverride ?? caps(run)[key] ?? 99999;
   const before = run.res[key] || 0;
+  if (key === 'knowledge' && amount > 0 && run.mods && run.mods.includes('senal')) amount *= 1.3;
   let after = before + amount;
   if (amount > 0) after = Math.min(after, Math.max(cap, before));
   after = Math.max(0, after);
@@ -204,6 +239,7 @@ export function addSuspicion(run, amount, reason) {
   let a = amount;
   if (a > 0) {
     a *= D.susp;
+    if (run.mods && run.mods.includes('purga')) a *= 1.25;
     // rasgos: fieles reducen, informante amplifica decisiones desleales
     for (const c of alive(run)) {
       if (has(c, 'leal')) a *= 0.9;

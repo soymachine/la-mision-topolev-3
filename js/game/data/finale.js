@@ -2,6 +2,7 @@
 
 import { alive, fmtClock, DIFFICULTY } from '../run.js';
 import { displayName, has } from '../crew.js';
+import { MODIFIERS } from './modifiers.js';
 
 export function briefingText(run) {
   const days = (run.deadline / 1440).toFixed(1).replace('.0', '');
@@ -19,6 +20,7 @@ export function briefingText(run) {
     'La tripulación responde ante el Partido. El Comité de Seguridad del Estado seguirá cada uno de sus pasos.',
     '',
     '{d}Firmado: ████████████, secretario del Comité Central.{/}',
+    ...(run.mods && run.mods.length ? ['', '{y}Condiciones de la misión:{/}', ...run.mods.map((m) => `· {${MODIFIERS[m].kind === 'pos' ? 'g' : MODIFIERS[m].kind === 'neg' ? 'r' : 'y'}}${MODIFIERS[m].name}{/}: ${MODIFIERS[m].desc}`)] : []),
   ].join('\n');
 }
 

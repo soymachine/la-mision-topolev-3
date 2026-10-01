@@ -10,6 +10,7 @@ import {
 } from './fcore.js';
 import { bfs, clamp } from '../engine/util.js';
 import { resolveRadio, completeOrder, scienceGain, polWork } from './stations.js';
+import { isMaster } from './data/modifiers.js';
 
 let xpRun = null;
 function giveXp(c, skill, amount) {
@@ -593,7 +594,7 @@ function doTask(run, c, t, dt, ctx) {
         if (Math.random() < dt * 0.6) emit(run, { kind: 'steam', room: 'comedor', x: st.x, y: st.y });
         if (t.progress >= TUNE.cookNeed) {
           t.progress = 0;
-          const batch = ctx.stats.meals + tadd(c, 'meals') + (c.skills.coc >= 7 ? 1 : 0);
+          const batch = ctx.stats.meals + tadd(c, 'meals') + (c.skills.coc >= 7 ? 1 : 0) + (isMaster(c, 'coc') ? 1 : 0);
           const use = Math.min(batch, run.res.rations);
           if (use > 0) {
             addRes(run, 'rations', -use);
@@ -654,7 +655,7 @@ function doTask(run, c, t, dt, ctx) {
       if (run.res.parts <= 0) rate *= 0.25;
       const amt = TUNE.repairRate * rate * dt;
       m.int = Math.min(m.maxInt, m.int + amt);
-      f.partAcc = (f.partAcc || 0) + amt / 12;
+      f.partAcc = (f.partAcc || 0) + amt / (isMaster(c, 'ing') ? 24 : 12);
       while (f.partAcc >= 1) {
         f.partAcc -= 1;
         if (run.res.parts > 0) addRes(run, 'parts', -1);
@@ -678,7 +679,7 @@ function doTask(run, c, t, dt, ctx) {
       if (run.res.parts <= 0) rate *= 0.25;
       const amt = TUNE.repairRate * rate * dt;
       rs.int = Math.min(100, rs.int + amt);
-      f.partAcc = (f.partAcc || 0) + amt / 15;
+      f.partAcc = (f.partAcc || 0) + amt / (isMaster(c, 'ing') ? 30 : 15);
       while (f.partAcc >= 1) {
         f.partAcc -= 1;
         if (run.res.parts > 0) addRes(run, 'parts', -1);
@@ -712,7 +713,7 @@ function doTask(run, c, t, dt, ctx) {
         return;
       }
       const inBed = p.act.spot != null;
-      let rate = workRate(c, 'med') * ctx.stats.heal * (run.ship.power.medico > 0 ? 1.3 : 0.85) * (inBed ? 1 : 0.6);
+      let rate = workRate(c, 'med') * ctx.stats.heal * (run.ship.power.medico > 0 ? 1.3 : 0.85) * (inBed ? 1 : 0.6) * (isMaster(c, 'med') ? 1.3 : 1);
       const hasMeds = run.res.meds > 0;
       if (!hasMeds) rate *= 0.35;
       const amt = TUNE.healRate * rate * dt;

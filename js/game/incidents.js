@@ -9,6 +9,7 @@ import {
 } from './fcore.js';
 import { newMessage, onKill } from './directives.js';
 import { clamp } from '../engine/util.js';
+import { isMaster } from './data/modifiers.js';
 
 const ROOM_IDS = () => layout().roomList.map((r) => r.id);
 
@@ -62,7 +63,8 @@ function pickIncident(run, f) {
   if (w > 0.3) items.push(['rayo', w * 2.2]);
   if ((run.res.rations || 0) > 8) items.push(['rata', 0.5]);
   if (alive(run).some((c) => has(c, 'saboteador'))) items.push(['sabotaje', 2]);
-  if (run.region >= 2) items.push(['anomalia', run.region === 2 ? 0.4 : run.region === 3 ? 1.5 : 3]);
+  if (run.region >= 2) items.push(['anomalia', (run.region === 2 ? 0.4 : run.region === 3 ? 1.5 : 3) * (run.mods && run.mods.includes('senal') ? 1.6 : 1)]);
+  else if (run.mods && run.mods.includes('senal')) items.push(['anomalia', 0.4]);
   if (!run.flags.polizon) items.push(['polizon', 0.35]);
   if ((run.res.meals || 0) > 3) items.push(['intoxicacion', 0.5]);
   if (run.ship.slots.reactor_core) items.push(['filtracion', 0.6]);
@@ -292,7 +294,7 @@ export function startCombat(run, group, surprise = false) {
 
 export function evasion(run, ctx) {
   const f = run.flight;
-  let e = ctx.pilot ? 0.04 + ctx.pilot.skills.pil * 0.022 : 0.02;
+  let e = ctx.pilot ? 0.04 + ctx.pilot.skills.pil * 0.022 + (isMaster(ctx.pilot, 'pil') ? 0.05 : 0) : 0.02;
   e += ctx.stats.evasion;
   if (ctx.copilot) e += 0.02;
   if (f.evasive > 0) e += 0.3;
@@ -378,7 +380,7 @@ export function stepCombat(run, dt, ctx) {
     const E = ENEMIES[tgt.type];
     const acc = clamp(0.38 + gunner.skills.art * 0.045 + (m.stats.acc || 0) + (gunner.traits.includes('halcon') ? 0.12 : 0) + (gunner.traits.includes('veterano') ? 0.05 : 0) - E.evasion + ctx.stats.detect, 0.05, 0.95);
     const hit = r.chance(acc);
-    const dmg = hit ? (m.stats.dmg || 6) * r.float(0.8, 1.25) * (m.int / m.maxInt > 0.5 ? 1 : 0.7) : 0;
+    const dmg = hit ? (m.stats.dmg || 6) * r.float(0.8, 1.25) * (m.int / m.maxInt > 0.5 ? 1 : 0.7) * (isMaster(gunner, 'art') ? 1.3 : 1) : 0;
     emit(run, { kind: 'shot', slot: slotId, station: st, enemy: tgt.id, hit });
     if (hit) {
       tgt.hp -= dmg;

@@ -5,6 +5,7 @@ import { bigFace, faceState, displayName, fullName, roleName, maxHp, visibleTrai
 import { SKILLS, TRAITS } from '../../game/data/traits.js';
 import { fmtClock } from '../../game/run.js';
 import { mix, pad } from '../../engine/util.js';
+import { MASTERY, MASTER_LEVEL } from '../../game/data/modifiers.js';
 
 export function drawDossier(app, run, c, opts = {}) {
   const { term, ui } = app;
@@ -50,10 +51,11 @@ export function drawDossier(app, run, c, opts = {}) {
     const need = 60 + v * 25;
     const id = 'dsk_' + s.id;
     ui.region(id, px + 3, yy, 40, 1, { cursor: 'help', sound: false });
-    ui.tip(id, [`{O}${s.name}{/}`, s.desc, `{d}Experiencia: ${Math.round(xp)}/${need}{/}`]);
+    ui.tip(id, [`{O}${s.name}{/}`, s.desc, `{d}Experiencia: ${Math.round(xp)}/${need}{/}`, v >= MASTER_LEVEL ? `{y}★ Maestría:{/} ${MASTERY[s.id]}` : `{x}Maestría (nivel ${MASTER_LEVEL}): ${MASTERY[s.id]}{/}`]);
     term.text(px + 3, yy, pad(s.name, 12), v >= 6 ? C.o6 : v >= 3 ? C.o4 : C.o2);
     for (let i = 0; i < 10; i++) term.put(px + 16 + i * 2, yy, i < v ? '■' : '·', i < v ? (v >= 6 ? C.o5 : C.o3) : C.o1);
     term.text(px + 37, yy, String(v), C.o6);
+    if (v >= MASTER_LEVEL) term.text(px + 39, yy, '★', C.gold);
     yy++;
   }
   // rasgos

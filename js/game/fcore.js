@@ -60,7 +60,7 @@ export function daylight(clock) {
 
 export function outsideTemp(run) {
   const R = REGIONS[run.region];
-  return R.temp - 16 - (run.flight?.weather || 0) * 8 - (1 - daylight(run.clock)) * 7;
+  return R.temp - 16 - (run.flight?.weather || 0) * 8 - (1 - daylight(run.clock)) * 7 - (run.mods && run.mods.includes('invierno') ? 6 : 0);
 }
 
 export function F(run) {

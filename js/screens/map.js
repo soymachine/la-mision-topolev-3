@@ -12,6 +12,7 @@ import { activeDirectives } from '../game/directives.js';
 import { saveGame } from '../game/save.js';
 import { resourceBar, suspicionMeter, clockWidget, regionTag, sectionTitle } from './ui/common.js';
 import { restCrew } from '../game/nodes.js';
+import { MODIFIERS } from '../game/data/modifiers.js';
 
 const NODE_COL = { gold: C.gold, o6: C.o6, o5: C.o5, o4: C.o4, red: C.red, grey: C.grey, ice: C.ice, violet: C.violet };
 
@@ -339,6 +340,20 @@ export class MapScreen {
       app.audio.play('success');
     }
     yy += 2;
+    // condiciones de la misión
+    if (run.mods && run.mods.length) {
+      let mx2 = x + 2;
+      for (const m of run.mods) {
+        const M = MODIFIERS[m];
+        const col = M.kind === 'pos' ? C.rad : M.kind === 'neg' ? C.red : C.gold;
+        const id = 'mod_' + m;
+        ui.region(id, mx2, yy, M.name.length + 2, 1, { cursor: 'help', sound: false });
+        ui.tip(id, [`{O}${M.name}{/}`, M.desc]);
+        term.text(mx2, yy, '◆ ' + M.name, col);
+        mx2 += M.name.length + 4;
+      }
+      yy += 2;
+    }
     // directivas
     sectionTitle(app, x + 1, yy++, w - 2, 'DIRECTIVAS DE MOSCÚ');
     const ds = activeDirectives(run);

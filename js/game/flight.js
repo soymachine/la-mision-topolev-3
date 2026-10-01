@@ -12,6 +12,7 @@ import {
 import { placeCrew, assign, stepCrew } from './crewai.js';
 import { planLeg, triggerIncident, stepCombat, stepPvo, weaponPowered, hitRoom } from './incidents.js';
 import { clamp } from '../engine/util.js';
+import { isMaster } from './data/modifiers.js';
 
 export const THROTTLE = [
   { name: 'Económico', speed: 0.74, fuel: 0.6, wear: 0.5 },
@@ -216,7 +217,14 @@ function stepReactor(run, f, ctx, dt) {
   }
   if (!core) return;
   const cap = Math.max(1, ctx.stats.power);
-  const load = powerUsed(run) / cap;
+  // las baterías de emergencia no calientan el núcleo; un núcleo muerto se enfría
+  const reactorPower = Math.max(0, ctx.stats.power + (ship.overload && ctx.stats.power > 0 ? 3 : 0) - (f.drain > 0 ? 3 : 0));
+  if (core.int <= 0 || reactorPower <= 0) {
+    ship.heat = Math.max(18, ship.heat - 2 * dt);
+    ship.rooms.reactor.rad = core.int <= 0 ? 8 : 0;
+    return;
+  }
+  const load = Math.min(powerUsed(run), reactorPower) / cap;
   const op = ctx.atStation.reactor;
   let cool = 1.1 + ctx.stats.cool + (op ? 0.5 + op.skills.ing * 0.07 : 0);
   if (core.int < core.maxInt * 0.5) cool *= 0.8;
@@ -293,7 +301,7 @@ function stepEngines(run, f, ctx, dt) {
   const mq = ctx.atStation.maquinas;
   const mqK = mq ? 1.03 + mq.skills.ing * 0.004 : 1;
   const nav = ctx.atStation.navegante;
-  const navK = nav ? 1.0 + nav.skills.nav * 0.014 * (has(nav, 'calculador') ? 1.25 : 1) : 0.84;
+  const navK = nav ? 1.0 + nav.skills.nav * 0.014 * (has(nav, 'calculador') ? 1.25 : 1) + (isMaster(nav, 'nav') ? 0.05 : 0) : 0.84;
   let speed = thrust * massK * thr.speed * pilotK * mqK;
   if (f.anomaly > 0) speed *= 0.9;
   if (f.evasive > 0) speed *= 0.85;
